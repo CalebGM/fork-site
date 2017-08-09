@@ -1,0 +1,25 @@
+.editor {
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  cursor: text;
+  padding: 16px;
+  border-radius: 2px;
+  margin-bottom: 2em;
+  box-shadow: inset 0px 1px 8px -3px #ABABAB;
+  background: #fefefe;
+}
+
+
+.editor :global(.public-DraftEditor-content) {
+	min-height: 300px;
+	max-height: 500px;
+	overflow: auto;
+}
+
+.videoAndImages {
+	display: flex;
+	justify-content: center;
+	flex: 1 1 0;
+	flex-shrink: 0;
+	overflow: auto;
+}

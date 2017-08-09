@@ -5,6 +5,9 @@ import Article from './Article.js';
 class Category extends React.Component {
 	constructor(props) {
 		super(props);
+		console.log(this);
+		var path = props.match.path;
+		var cat = path.substring(1);
 		this.state = { articles: null, cat: props.match.params.subCat };
 	}
 	
@@ -61,7 +64,7 @@ class Category extends React.Component {
 				)}
 				
 				<Route path={`/${this.state.cat}/:article`} component={Article} category={this.state.cat}/>
-				<h1>Testing { this.props.match.params.subCat } Page</h1>
+				<h1>Testing { this.state.cat } Page</h1>
 			</div>
 		);
 	}

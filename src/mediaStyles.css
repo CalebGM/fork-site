@@ -1,0 +1,17 @@
+.popoverOpen {
+	display: none;
+}
+
+.popoverClosed {
+	display: inline-block;
+}
+
+
+.urlOpen {
+	display: inline-block;
+}
+
+
+.urlClosed {
+	display: none;
+}

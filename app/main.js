@@ -43,9 +43,27 @@ app.post('/getArticle', function(req, res) {
 			console.log(err);
 			res.send(err);
 		} else {
-			var content = data.Body.toString();
+			var content = JSON.parse(data.Body);
 			console.log(data.Body);
 			res.send({ body: content });
+		}
+	});
+});
+
+app.post('/admin/publish/postArticle', function(req, res) {
+	console.log(req.body);
+	var cat = req.body.category;
+	var key = req.body.title;
+	var article = req.body.article;
+	var art = JSON.stringify(article);
+	var bucket = "ata-" + cat;
+	s3.putObject(params = { Bucket: bucket, Key: key, Body: art}, function(err, data) {
+		if (err) {
+			console.log(err);
+			res.send(err);
+		} else {
+			console.log(data);
+			res.send(data.Contents);
 		}
 	});
 });
