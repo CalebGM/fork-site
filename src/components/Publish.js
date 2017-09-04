@@ -1,3 +1,4 @@
+/* eslint import/no-webpack-loader-syntax: off */
 import React from 'react';
 import Editor, { composeDecorators } from 'draft-js-plugins-editor';
 import createVideoPlugin from 'draft-js-video-plugin';
@@ -8,9 +9,10 @@ import createAlignmentPlugin from 'draft-js-alignment-plugin';
 import createInlineToolbarPlugin from 'draft-js-inline-toolbar-plugin';
 import createColorBlockPlugin from './colorBlockPlugin';
 import ModifiedVideoWrapper from './ModifiedVideoWrapper.js';
-import '../Editor.css';
-import '../Video.css';
-import 'draft-js-inline-toolbar-plugin/lib/plugin.css';
+import editorStyles from '../Editor.css';
+import videoStyles from '../Video.css';
+import imageStyles from '../Image.css';
+import '!style-loader!css-loader!draft-js-inline-toolbar-plugin/lib/plugin.css';
 import 'draft-js-image-plugin/lib/plugin.css';
 import 'draft-js-alignment-plugin/lib/plugin.css';
 import {EditorState, RichUtils, convertToRaw} from 'draft-js';
@@ -23,13 +25,11 @@ const alignmentPlugin = createAlignmentPlugin();
 
 
 const decorator = composeDecorators(
-	resizeablePlugin.decorator,
-  alignmentPlugin.decorator,
-  focusPlugin.decorator,
+	//focusPlugin.decorator,
 );
-const imagePlugin = createImagePlugin({ decorator });
+const imagePlugin = createImagePlugin({ theme: imageStyles, decorator: decorator });
 const colorBlockPlugin = createColorBlockPlugin({ decorator: decorator });
-const videoPlugin = createVideoPlugin({ 
+/*const videoPlugin = createVideoPlugin({ 
 	autoHandlePastedText: true, 
 	videoComponent: (props) => {
 		return (
@@ -38,7 +38,9 @@ const videoPlugin = createVideoPlugin({
 	},
 	decorator: decorator,
 });
+*/
 
+const videoPlugin = createVideoPlugin({theme: videoStyles, decorator: decorator});
 
 
 const videoPlugin2 = createVideoPlugin({ 
@@ -53,28 +55,32 @@ const imagePlugin2 = createImagePlugin();
 const toolbarPlugin2 = createInlineToolbarPlugin();
 const focusPlugin2 = createFocusPlugin();
 const resizeablePlugin2 = createResizeablePlugin();
-const alignmentPlugin2 = createAlignmentPlugin();
+//const alignmentPlugin2 = createAlignmentPlugin();
 
 
 
 
 
-const { AlignmentTool } = alignmentPlugin;
+//const { AlignmentTool } = alignmentPlugin;
 const { InlineToolbar } = toolbarPlugin;
 
 
 function mediaBlockStyleFn(contentBlock) {
 	const type = contentBlock.getType();
 	if (type === 'atomic') {
-		return 'videoAndImages';
+		return editorStyles.videoAndImages;
 	}
 }
 
 
 
 
-const plugins = [focusPlugin, videoPlugin, alignmentPlugin, resizeablePlugin, toolbarPlugin, imagePlugin, colorBlockPlugin];
-const plugins2 = [focusPlugin2, alignmentPlugin2, resizeablePlugin2, imagePlugin2, videoPlugin2];
+const plugins = [focusPlugin, alignmentPlugin, colorBlockPlugin, videoPlugin, toolbarPlugin, imagePlugin];
+const plugins2 = [focusPlugin2, resizeablePlugin2, imagePlugin2, videoPlugin2];
+
+
+
+const categories = ['Art', 'Comics', 'Fake News', 'Life', 'Movies', 'Music', 'Sports', 'Video Games'];
 
 class Publish extends React.Component {
 	constructor(props) {
@@ -82,12 +88,15 @@ class Publish extends React.Component {
 		this.state = {editorStateTitle: EditorState.createEmpty(),
 						editorStateBody: EditorState.createEmpty(),
 						title: '',
-						category: '',
+						author: '',
+						category: new Set(),
 						repeat: null};
 		this.onChangeTitle = (editorStateTitle) => this.setState({editorStateTitle});
 		this.onChangeBody = (editorStateBody) => this.setState({editorStateBody});
+		this.createCheckbox = this.createCheckbox.bind(this);
 		this.handleChange = this.handleChange.bind(this);
 		this.handleTitleChange = this.handleTitleChange.bind(this);
+		this.handleAuthorChange = this.handleAuthorChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 		this.handleKeyCommand = this.handleKeyCommand.bind(this);
 	}
@@ -103,15 +112,42 @@ class Publish extends React.Component {
 	}
 	
 	handleChange(event) {
-		this.setState({category: event.target.value});
+		var newCat = this.state.category;
+		if(newCat.has(event.target.value)) {
+			newCat.delete(event.target.value);
+			this.setState({category: newCat});
+		} else {
+			newCat.add(event.target.value);
+			this.setState({category: newCat});
+		}
+		console.log(newCat);
+		//this.setState({category: event.target.value});
 	}
 	
 	handleTitleChange(event) {
 		this.setState({title: event.target.value});
 	}
 	
+	handleAuthorChange(event) {
+		this.setState({author: event.target.value});
+	}
+	
 	handleSubmit(event) {
-		
+		event.preventDefault();
+		var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+		var checkedOne = Array.prototype.slice.call(checkboxes).some(x => x.checked);
+		if (!checkedOne) {
+			alert('Please check at least one category');
+		} else {
+			var myForm = document.getElementById('publish');
+			var formData = new FormData(myForm);
+			console.log(document.getElementById('publish').elements);
+			console.log(formData.getAll('cat'));
+			for (var [key, value] of formData.entries()) {
+				
+				console.log(key, value);
+			}
+		}
 	}
 	
 	handleSubmit2() {
@@ -134,6 +170,23 @@ class Publish extends React.Component {
 			.catch((error) => {
 				console.log(error);
 			});
+	}
+	
+	
+	createCheckbox(label) {
+		return (
+			<div key={categories.indexOf(label)}>
+				<label>	
+					<input type="checkbox" name="cat" value={label} checked={this.state.category.has(label)} onChange={this.handleChange} />
+						{label}
+				</label>
+			</div>
+		);
+		
+	}
+	
+	createCheckboxes() {
+		return categories.map(this.createCheckbox);
 	}
 	
 	
@@ -176,30 +229,18 @@ class Publish extends React.Component {
 			</div>
 			
 			<div style={{borderStyle: 'solid'}} >
-				<form id="publish" onSubmit={this.handleSubmit} >
+				<form name="publish" id="publish" onSubmit={this.handleSubmit} >
 					<div>
 					<fieldset>
-						<label>
-							Select a category for your article:	
-							<input type="radio" value="movies" name="hi" checked={this.state.category === 'movies'} onChange={this.handleChange} required/>
-							Movies
-						</label>
-						<label>
-							<input type="radio" value="music" name="hi" checked={this.state.category === 'music'} onChange={this.handleChange} required/>
-							Music
-						</label>
-						<label>
-							<input type="radio" value="comics" name="hi" checked={this.state.category === 'comics'} onChange={this.handleChange} required/>
-							Comics
-						</label>
-						<label>
-							<input type="radio" value="videogames" name="hi" checked={this.state.category === 'videogames'} onChange={this.handleChange} required/>
-							Video Games
-						</label>
-						</fieldset>
+						{this.createCheckboxes()}	
+					</fieldset>
 					</div>
 					<div>
-						<input type="text" value={this.state.title} placeholder="Give your article a unique title..." onChange={this.handleTitleChange} required />
+						<input type="text" name="title" value={this.state.title} placeholder="Give your article a unique title..." onChange={this.handleTitleChange} required />
+					</div>
+					<br /> <br />
+					<div>
+						<input type="text" name="author" value={this.state.author} placeholder="Write the author's name..." onChange={this.handleAuthorChange} required />
 					</div>
 				</form>
 			</div>
@@ -232,18 +273,18 @@ class Publish extends React.Component {
 				modifier={videoPlugin.addVideo}
 				type="video"
 			/>
-			<div className="editor" onClick={this._focus}>
+			<div className={editorStyles.editor} onClick={this._focus}>
 				<Editor 
 					editorState = {this.state.editorStateBody} 
 					handleKeyCommand={this.handleKeyCommand}
+					textAlignment='right'
 					blockStyleFn={mediaBlockStyleFn}
 					onChange={this.onChangeBody} 
 					plugins={plugins}
 					ref={(element) => { this.editor = element; }}
-					placeholder='Write the rest of your article....'
+					placeholder='Write the rest of your article.....'
 				/>
 				<InlineToolbar />
-				<AlignmentTool />
 				
 			</div>
 			<br />

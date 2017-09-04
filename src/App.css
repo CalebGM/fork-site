@@ -1,18 +1,22 @@
 .App {
 	display: flex;
-  text-align: center;
 }
 
-.App-logo {
+.logo {
   animation: App-logo-spin infinite 20s linear;
   height: 80px;
 }
 
-.App-header {
+.banner {
   background-color: #222;
   height: 150px;
   padding: 20px;
   color: white;
+  text-align: center;
+}
+
+.header {
+	text-align: center;
 }
 
 .App-intro {
@@ -25,10 +29,11 @@
 }
 
 .Sidebar {
-	width: 20vw;
+	width: 10vw;
 	overflow: auto;
 	height: 30vh;
-	background-color: #eee
+	background-color: #eee;
+	text-align: center;
 }
 
 .Main {
@@ -41,4 +46,11 @@
 	overflow: hidden;
 	padding: 20px 10px;
 	font-size: large;
+}
+
+
+.Adbar {
+	width: 20vw;
+	overflow: auto;
+	height: 30vh;
 }

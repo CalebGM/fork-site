@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import '../mediaStyles.css';
+import styles from '../mediaStyles.css';
 
 
 class MediaAdd extends Component {
@@ -52,8 +52,8 @@ class MediaAdd extends Component {
 	
 	render() {
 		//const addMediaImage = (this.props.type === 'video' ? videoImage : imageImage);
-		const chooseMedia = this.state.open ? 'popoverOpen' : 'popoverClosed';
-		const addUrl = this.state.open ? 'urlOpen' : 'urlClosed';
+		const chooseMedia = this.state.open ? styles.popoverOpen : styles.popoverClosed;
+		const addUrl = this.state.open ? styles.urlOpen : styles.urlClosed;
 		return (
 			<div className=''>
 				<button className={chooseMedia} onMouseUp={this.openPopover.bind(this)} type="button">+</button>
