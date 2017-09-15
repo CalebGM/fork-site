@@ -30,10 +30,13 @@ class Home extends React.Component {
 	
 	
 	componentWillReceiveProps(nextProps) {
-		if (this.state.page !== nextProps.match.params.num) {
+		if ((this.state.page !== nextProps.match.params.num) && nextProps.match.params.num) {
 			var page = Number(nextProps.match.params.num);
 			var nextPage = (page + 1).toString();
 			this.setState({ articles: null, page: nextProps.match.params.num, nextPage: nextPage },
+				() => this.fetchHomeArticles());
+		} else {
+			this.setState({ articles: null, page: 1, nextPage: 2 },
 				() => this.fetchHomeArticles());
 		}
 	}

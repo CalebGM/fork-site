@@ -257,7 +257,7 @@ class EditArticle extends React.Component {
 				) : (
 					<div>
 						<div>
-							<h1>Add Your Article</h1>
+							<h1>Edit Your Article</h1>
 						</div>
 						
 						<div className={editorStyles.form} >

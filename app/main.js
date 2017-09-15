@@ -7,7 +7,6 @@ var Stream = require('stream');
 var bodyParser = require('body-parser');
 var AWS = require('aws-sdk');
 var mysql = require('mysql');
-var GoogleAuth = require('google-auth-library');
 
 var env = process.env.NODE_ENV || 'development';
 //console.log(process.env.NODE_ENV);
@@ -17,7 +16,6 @@ var config = require('./config')[env];
 
 
 var s3 = new AWS.S3();
-var auth = new GoogleAuth;
 
 var connection = mysql.createConnection({
 	host: config.database.host,
@@ -27,6 +25,7 @@ var connection = mysql.createConnection({
 });
 
 const categories = ['Art', 'Comics', 'Fake_News', 'Life', 'Movies', 'Music', 'Sports', 'Video_Games'];
+const table = config.database.articles;
 
 
 //app.use(bodyParser.urlencoded({
@@ -58,8 +57,8 @@ app.post('/getHomePage', function(req, res) {
 	var page = Number(req.body.page);
 	var offset = (page - 1)*15;
 	
-	var sql = "SELECT * FROM ata_dbtest2.Articles ORDER BY Created DESC LIMIT ?, 15";
-	sql = mysql.format(sql, [offset]);
+	var sql = "SELECT * FROM ?? ORDER BY Created DESC LIMIT ?, 15";
+	sql = mysql.format(sql, [table, offset]);
 	
 	connection.query(sql, function (error, results, fields) {
 		if (error) {
@@ -80,8 +79,8 @@ app.post('/getAuthorPage', function(req, res) {
 	var page = Number(req.body.page);
 	var offset = (page - 1)*15;
 	
-	var sql = "SELECT * FROM ata_dbtest2.Articles WHERE Author = ? ORDER BY Created DESC LIMIT ?, 15";
-	sql = mysql.format(sql, [author, offset]);
+	var sql = "SELECT * FROM ?? WHERE Author = ? ORDER BY Created DESC LIMIT ?, 15";
+	sql = mysql.format(sql, [table, author, offset]);
 	console.log(sql);
 	
 	connection.query(sql, function (error, results, fields) {
@@ -103,8 +102,8 @@ app.post('/getCategoryPage', function(req, res) {
 	
 	var offset = (page - 1)*15;
 	
-	var sql = "SELECT * FROM ata_dbtest2.Articles WHERE ?? = 1 ORDER BY Created DESC LIMIT ?, 15";
-	sql = mysql.format(sql, [cat, offset]);
+	var sql = "SELECT * FROM ?? WHERE ?? = 1 ORDER BY Created DESC LIMIT ?, 15";
+	sql = mysql.format(sql, [table, cat, offset]);
 	
 	connection.query(sql, function (error, results, fields) {
 		if (error) {
@@ -122,8 +121,8 @@ app.post('/getArticle', function(req, res) {
 	var key = req.body.key;
 	var bucket = "ata-articles";
 	
-	var sql = "SELECT * FROM ata_dbtest2.Articles WHERE Title = ?";
-	sql = mysql.format(sql, [key]);
+	var sql = "SELECT * FROM ?? WHERE Title = ?";
+	sql = mysql.format(sql, [table, key]);
 	
 	connection.query(sql, function (error, results, fields) {
 		if (error) {
@@ -151,8 +150,8 @@ app.post('/checkLogin', function(req, res) {
 	var username = req.body.username;
 	var password = req.body.password;
 	
-	var sql = "SELECT COUNT(*) AS isAdmin FROM ata_dbtest2.Admin WHERE ata_username = ? AND ata_password = ?";
-	sql = mysql.format(sql, [username, password]);
+	var sql = "SELECT COUNT(*) AS isAdmin FROM ?? WHERE ata_username = ? AND ata_password = ?";
+	sql = mysql.format(sql, [table, username, password]);
 	
 	connection.query(sql, function (error, results, fields) {
 		if (error) {
@@ -227,9 +226,9 @@ app.post('/admin/publish/postArticle', function(req, res) {
 	}
 	
 			
-	var sql = "INSERT INTO ata_dbtest2.Articles (Title, Author, Art, Comics, Fake_News, Life, Movies, Music, Sports, Video_Games," +
+	var sql = "INSERT INTO ?? (Title, Author, Art, Comics, Fake_News, Life, Movies, Music, Sports, Video_Games," +
 				 " Created, Last_Updated) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-	var inserts = [key, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], isCat[5],
+	var inserts = [table, key, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], isCat[5],
 					isCat[6], isCat[7], date, date];
 	sql = mysql.format(sql, inserts);
 	console.log(sql);
@@ -275,9 +274,9 @@ app.post('/admin/publish/updateArticle', function(req, res) {
 	}
 	
 			
-	var sql = "UPDATE ata_dbtest2.Articles SET Author = ?, Art = ?, Comics = ?, Fake_News = ?, Life = ?, Movies = ?, Music = ?, " +
+	var sql = "UPDATE ?? SET Author = ?, Art = ?, Comics = ?, Fake_News = ?, Life = ?, Movies = ?, Music = ?, " +
 				"Sports = ?, Video_Games = ?, Last_Updated = ? WHERE Title = ?;";
-	var inserts = [author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], isCat[5],
+	var inserts = [table, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], isCat[5],
 					isCat[6], isCat[7], date, key];
 	sql = mysql.format(sql, inserts);
 	console.log(sql);
