@@ -1,9 +1,6 @@
 /* eslint import/no-webpack-loader-syntax: off */
 
 import React from 'react';
-import { Redirect } from 'react-router';
-import { connect } from 'react-redux';
-import { setRedirectUrl } from '../actions';
 
 import Editor from 'draft-js-plugins-editor';
 import {EditorState, RichUtils, convertToRaw} from 'draft-js';
@@ -22,9 +19,9 @@ import 'draft-js-image-plugin/lib/plugin.css';
 import MediaAdd from './MediaAdd.js';
 import Preview from './Preview.js';
 
+
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
-
 
 
 
@@ -33,16 +30,6 @@ const focusPlugin = createFocusPlugin();
 const imagePlugin = createImagePlugin({ theme: imageStyles });
 const videoPlugin = createVideoPlugin({theme: videoStyles})
 const { InlineToolbar } = toolbarPlugin;
-/*const videoPlugin = createVideoPlugin({ 
-	autoHandlePastedText: true, 
-	videoComponent: (props) => {
-		return (
-			<ModifiedVideoWrapper props={props} />
-		);
-	},
-	decorator: decorator,
-});
-*/
 
 function mediaBlockStyleFn(contentBlock) {
 	const type = contentBlock.getType();
@@ -57,21 +44,21 @@ const plugins = [focusPlugin, videoPlugin, toolbarPlugin, imagePlugin];
 const categories = ['Art', 'Comics', 'Fake_News', 'Life', 'Movies', 'Music', 'Sports', 'Video_Games'];
 
 
-class Publish extends React.Component {
+class EditArticle extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {editorStateTitle: EditorState.createEmpty(),
-						editorStateBody: EditorState.createEmpty(),
-						title: '',
-						author: '',
-						category: new Set(),
+		var categories = new Set(props.categories);
+		
+		this.state = {editorStateBody: props.article,
+						title: props.title,
+						author: props.author,
+						category: categories,
 						preview: false,
 						finishPublish: false,
 						fetches: {}
 					};
-		this.onChangeTitle = (editorStateTitle) => this.setState({editorStateTitle});
+						
 		this.onChangeBody = (editorStateBody) => this.setState({editorStateBody});
-
 		this.createCheckbox = this.createCheckbox.bind(this);
 		this.handleChange = this.handleChange.bind(this);
 		this.handleTitleChange = this.handleTitleChange.bind(this);
@@ -80,14 +67,6 @@ class Publish extends React.Component {
 		this.handleKeyCommand = this.handleKeyCommand.bind(this);
 	}
 	
-	
-	componentDidMount() {
-		const { login, dispatch, currentURL } = this.props;
-		
-		if (!login) {
-			dispatch(setRedirectUrl(currentURL));
-		}
-	}
 	
 	handleKeyCommand(command) {
 		const newState = RichUtils.handleKeyCommand(this.state.editorStateBody, command);
@@ -139,9 +118,15 @@ class Publish extends React.Component {
 				if (key) {
 					let entity = articleContent.getEntity(key);
 					if (entity.type === "image") {
-						let fetches = this.state.fetches;
-						fetches[key] = entity;
-						this.setState({ fetches: fetches });
+						let uploadUrl = "https://s3-us-west-2.amazonaws.com/ata-media/media";
+						let imageUrl = entity.data.src;
+						let imageBaseUrl = imageUrl.substring(0, imageUrl.lastIndexOf('/'));
+						
+						if (uploadUrl !== imageBaseUrl) {
+							let fetches = this.state.fetches;
+							fetches[key] = entity;
+							this.setState({ fetches: fetches });
+						}
 					}
 				}
 				nextBlock = articleContent.getBlockAfter(nextBlock.key);
@@ -158,7 +143,7 @@ class Publish extends React.Component {
 			Promise.all(promises).then(() => {
 				var articleContentImg = this.state.editorStateBody.getCurrentContent();
 				var articleRaw = convertToRaw(articleContentImg);
-				fetch(config.url + "/admin/publish/postArticle",
+				fetch(config.url + "/admin/publish/updateArticle",
 				{
 					method: 'post',
 					headers: {
@@ -248,15 +233,13 @@ class Publish extends React.Component {
 	}
 	
 	render() {
-		const { login } = this.props;
-		const { finishPublish, title } = this.state;
+		const { onPublish } = this.props;
+		const { finishPublish } = this.state;
 		
-		if (!login) {
-			return <Redirect to='/admin' />;
-		} else if (finishPublish) {
-			return <Redirect to={`/story/${title}`} />;
-		}
+		if (finishPublish)
+			{onPublish()};
 		
+	
 		return (
 			<div>
 				{this.state.preview ? (
@@ -268,7 +251,7 @@ class Publish extends React.Component {
 							author={this.state.author}
 						/>
 						<div>
-							<button onClick={this._onEditClick.bind(this)}>Back To Edit</button>
+							<button onClick={this._onEditClick.bind(this)}>Edit Article</button>
 						</div>
 					</div>
 				) : (
@@ -346,15 +329,5 @@ class Publish extends React.Component {
 	}
 }	
 	
-	
-const mapStateToProps = (state, ownProps) => {
-	return {
-		login: state.login,
-		currentURL: ownProps.location.pathname
-	}
-}
-	
-	
-	
 
-export default connect(mapStateToProps)(Publish)
+export default EditArticle;

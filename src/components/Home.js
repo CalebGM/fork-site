@@ -1,50 +1,52 @@
-import React from 'react'
+import React from 'react';
 import { Link } from 'react-router-dom';
 import QuickArticleDisplay from './QuickArticleDisplay.js';
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
 
-class Category extends React.Component {
+
+
+
+class Home extends React.Component {
 	constructor(props) {
 		super(props);
-		var page = Number(props.match.params.num);
+		var page;
+		if (props.match.params.num) {
+			page = Number(props.match.params.num);
+		} else {
+			page = 1;
+		}
 		var nextPage = (page + 1).toString();
-		this.state = { articles: null, cat: props.match.params.subCat, page: page, nextPage: nextPage };
+		
+		this.state = { articles: null, page: page, nextPage: nextPage };
 	}
+	
 	
 	componentDidMount() {
-		this.fetchCategoryArticles();
+		this.fetchHomeArticles();
 	}
 	
+	
+	
 	componentWillReceiveProps(nextProps) {
-		if (this.props.match.params.subCat !== nextProps.match.params.subCat) {
-			this.setState({ articles: null, cat: nextProps.match.params.subCat, page: '1', nextPage: '2'}, 
-				() => this.fetchCategoryArticles());
-		} else if (this.state.page !== nextProps.match.params.num) {
+		if (this.state.page !== nextProps.match.params.num) {
 			var page = Number(nextProps.match.params.num);
 			var nextPage = (page + 1).toString();
 			this.setState({ articles: null, page: nextProps.match.params.num, nextPage: nextPage },
-				() => this.fetchCategoryArticles());
+				() => this.fetchHomeArticles());
 		}
 	}
 	
-	componentWillUnmount() {
-		this.setState({});
-	}
 	
-	
-	
-	fetchCategoryArticles() {
-		
-		
-		fetch(config.url + "/getCategoryPage",
+	fetchHomeArticles() {
+		fetch(config.url + "/getHomePage",
 		{
 			method: 'post',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ category: this.state.cat, page: this.state.page }),
+			body: JSON.stringify({ page: this.state.page }),
 			credentials: 'include'
 		})
 			.then((response) => response.json())
@@ -53,9 +55,9 @@ class Category extends React.Component {
 			})
 			.catch((error) => {
 				console.log(error);
-			});
+			})
 	}
-	//`/${this.state.cat}/:article`
+	
 	
 	render() {
 		return (
@@ -71,18 +73,18 @@ class Category extends React.Component {
 					<div></div>
 				)}
 				
-				<h1>Testing { this.state.cat } Page</h1>
+				<h1>Testing Home Page</h1>
 			</div>
 			<div>
-				<Link to={`/${this.state.cat}/page=${this.state.nextPage}`}>
+				<Link to={`/page=${this.state.nextPage}`}>
 					Next Page
 				</Link>
 			</div>
 		</div>
 		);
 	}
-	
-	
+
 }
 
-export default Category;
+
+export default Home;

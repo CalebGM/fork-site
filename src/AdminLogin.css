@@ -1,0 +1,17 @@
+.background {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	overflow: auto;
+	background: white;
+	text-align: center;
+}
+
+.login {
+	border: 1px solid;
+	width: 200px;
+	margin: 0 auto;
+	margin-top: 50px;
+}

@@ -1,0 +1,58 @@
+.Article{
+	margin-top: 15px;
+	margin-left: 5px;
+}
+
+
+.Body{
+	padding: 16px;
+}
+
+
+.Title{
+	font-family: arial, sans-serif;
+	font-size: 30px;
+	font-style: italic;
+	font-weight: bold;
+}
+
+
+
+.SubInfo{
+	display: flex;
+	
+	font-size: 13px;
+
+}
+
+
+.Author{
+	display: flex;
+	padding-right: 15px;
+}
+
+.Categories{
+	display: flex;
+	padding-right: 15px;
+}
+
+.CatList{
+	margin: 0;
+	padding: 0;
+}
+
+.Category{
+	display: inline;
+	padding: 3px;
+}
+
+
+.Link{
+	text-decoration: none;
+	color: blue;
+}
+
+
+.Created{
+	padding-right: 15px;
+}

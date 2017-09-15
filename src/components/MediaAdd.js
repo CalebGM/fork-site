@@ -37,7 +37,6 @@ class MediaAdd extends Component {
 	}
 	
 	addMedia () {
-		console.log(this);
 		const {editorState, onChange} = this.props;
 		if(this.props.type === 'video') {
 			onChange(this.props.modifier(editorState, {src: this.state.url}));
@@ -55,7 +54,7 @@ class MediaAdd extends Component {
 		const chooseMedia = this.state.open ? styles.popoverOpen : styles.popoverClosed;
 		const addUrl = this.state.open ? styles.urlOpen : styles.urlClosed;
 		return (
-			<div className=''>
+			<div className={styles.Input} >
 				<button className={chooseMedia} onMouseUp={this.openPopover.bind(this)} type="button">+</button>
 				<div className={addUrl} onClick={this.onPopoverClick.bind(this)}>
 					<input type="text" placeholder="Paste the url...." className='' onChange={this.changeUrl.bind(this)} value={this.state.url} />

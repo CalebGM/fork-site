@@ -15,3 +15,7 @@
 .urlClosed {
 	display: none;
 }
+
+.Input {
+	display: inline;
+}
