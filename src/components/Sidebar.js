@@ -1,6 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import SidebarStyles from '../Sidebar.css';
 
 
 function Sidebar(props) {
@@ -8,7 +9,7 @@ function Sidebar(props) {
 	
 	return (
 		<div className="Tabs">
-			<Link to="/cat/art/page=1">Art</Link> <br />
+			<Link className={SidebarStyles.Links} to="/cat/art/page=1">Art</Link> <br />
 			<Link to="/cat/comics/page=1">Comics</Link> <br />
 			<Link to="/cat/fake_news/page=1">Fake News</Link> <br />
 			<Link to="/cat/life/page=1">Life</Link> <br />

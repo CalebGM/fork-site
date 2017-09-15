@@ -241,7 +241,7 @@ class EditArticle extends React.Component {
 		
 	
 		return (
-			<div>
+			<div className={editorStyles.publishBody} >
 				{this.state.preview ? (
 					<div>
 						<Preview 
@@ -260,7 +260,7 @@ class EditArticle extends React.Component {
 							<h1>Add Your Article</h1>
 						</div>
 						
-						<div style={{borderStyle: 'solid'}} >
+						<div className={editorStyles.form} >
 							<form name="publish" id="publish" onSubmit={this.handleSubmit} >
 								<div >
 									<fieldset className={editorStyles.checkField} >
@@ -284,11 +284,11 @@ class EditArticle extends React.Component {
 						<br />
 						<br />
 						
-						<div style={{ display: 'inline' }}>
-							<button onClick={this._onBoldClick.bind(this)}>Bold</button>
-							<button onClick={this._onItalicizeClick.bind(this)}>Italic</button>
-							<button onClick={this._onVidClick.bind(this)}>Add Video</button>
-							<button onClick={this._onImgClick.bind(this)}>Add Image</button>
+						<div className={editorStyles.buttons}>
+							<button className={editorStyles.button} onClick={this._onBoldClick.bind(this)}>Bold</button>
+							<button className={editorStyles.button} onClick={this._onItalicizeClick.bind(this)}>Italic</button>
+							<button className={editorStyles.button} onClick={this._onVidClick.bind(this)}>Add Test Video</button>
+							<button className={editorStyles.button} onClick={this._onImgClick.bind(this)}>Add Test Image</button>
 							<MediaAdd
 								editorState={this.state.editorStateBody}
 								onChange={this.onChangeBody}

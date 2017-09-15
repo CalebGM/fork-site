@@ -50,15 +50,20 @@ class MediaAdd extends Component {
 	}
 	
 	render() {
-		//const addMediaImage = (this.props.type === 'video' ? videoImage : imageImage);
+		const videoImage = (<i className="fa fa-youtube"></i>);
+		const imageImage = (<i className="fa fa-photo"></i>);
+		const addMediaImage = (this.props.type === 'video' ? videoImage : imageImage);
+		
+		const confirmButton = (this.props.type === 'video' ? 'Add Video' : 'Add Image');
+		
 		const chooseMedia = this.state.open ? styles.popoverOpen : styles.popoverClosed;
 		const addUrl = this.state.open ? styles.urlOpen : styles.urlClosed;
 		return (
 			<div className={styles.Input} >
-				<button className={chooseMedia} onMouseUp={this.openPopover.bind(this)} type="button">+</button>
+				<button className={chooseMedia} onMouseUp={this.openPopover.bind(this)} type="button">{addMediaImage}</button>
 				<div className={addUrl} onClick={this.onPopoverClick.bind(this)}>
 					<input type="text" placeholder="Paste the url...." className='' onChange={this.changeUrl.bind(this)} value={this.state.url} />
-					<button className='addMedia' type="button" onClick={this.addMedia.bind(this)} >Add Media</button>
+					<button className='addMedia' type="button" onClick={this.addMedia.bind(this)} >{confirmButton}</button>
 				</div>
 			</div>
 		);

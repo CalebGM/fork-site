@@ -7,17 +7,23 @@
   margin-bottom: 2em;
   box-shadow: inset 0px 1px 8px -3px #ABABAB;
   background: #fefefe;
+  max-width: 900px;
 }
 
 
 .editor :global(.public-DraftEditor-content) {
 	min-height: 300px;
 	max-height: 500px;
+	max-width: 900px;
 	overflow: auto;
 }
 
 .videoAndImages {
 	
+}
+
+.publishBody {
+	margin-bottom: 25px;
 }
 
 
@@ -28,4 +34,16 @@
 
 .checkField {
 
+}
+
+.form {
+	border-style: solid;
+}
+
+.buttons {
+	display: flex;
+}
+
+.button {
+	margin-right: 10px;
 }
