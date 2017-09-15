@@ -54,3 +54,8 @@
 	overflow: auto;
 	height: 30vh;
 }
+
+.Link {
+	text-decoration: none;
+	color: black;
+}

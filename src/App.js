@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import Header from './components/Header.js';
 import Sidebar from './components/Sidebar.js';
 import Category from './components/Category.js';
@@ -10,18 +10,10 @@ import Home from './components/Home.js';
 import Author from './components/Author.js';
 import CheckLogin from './components/CheckLogin.js';
 import AdminLogin from './components/AdminLogin.js';
-//import CheckAdminLogin from './CheckAdminLogin.js';
 import logo from './logo.svg';
 import appStyles from './App.css';
 
 class App extends Component {
-	constructor(props) {
-		super(props);
-		this.state = { adminLog: false };
-	}
-	
-	componentDidMount() {
-	}
 
 	render() {
 		return (
@@ -33,13 +25,15 @@ class App extends Component {
 				</div>
 				
 				<div className={appStyles.Main}>
-					<div className={appStyles.header}>
-						<Header />
-					</div>
-					<div className={appStyles.banner}>
-					  <img src={logo} className={appStyles.logo} alt="logo" />
-					  <h2>Welcome to React</h2>
-					</div>
+					<Link className={appStyles.Link} to="/">
+						<div className={appStyles.header}>
+							<Header />
+						</div>
+						<div className={appStyles.banner}>
+						  <img src={logo} className={appStyles.logo} alt="logo" />
+						  <h2>Awesome Totally Awesome</h2>
+						</div>
+					</Link>
 					
 					<div>
 						<Route path="/" component={CheckLogin} />
