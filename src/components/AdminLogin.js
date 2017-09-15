@@ -30,8 +30,6 @@ class AdminLogin extends React.Component {
 		e.preventDefault();
 		var username = this.state.username;
 		var password = this.state.password;
-		console.log(username);
-		console.log(password);
 		
 		fetch(config.url + "/checkLogin",
 		{

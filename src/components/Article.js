@@ -64,9 +64,7 @@ class Article extends React.Component {
 		})
 			.then((response) => response.json())
 			.then((rs) => {
-				console.log(rs);
 				var cookedContent = convertFromRaw(JSON.parse(rs.body));
-				console.log(cookedContent);
 				var selArticle = EditorState.createWithContent(cookedContent);
 				
 				var articleInfo = rs.info[0];
@@ -165,7 +163,6 @@ class Article extends React.Component {
 									<ul className={ArticleStyles.CatList}>
 										{this.state.categories.map(cat => {
 											let lowerCat = this.toLower(cat);
-											console.log(lowerCat);
 											return (
 												<li className={ArticleStyles.Category} key={cat}>
 													<Link className={ArticleStyles.Link} to={`/cat/${lowerCat}/page=1`} >

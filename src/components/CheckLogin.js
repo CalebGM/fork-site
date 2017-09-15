@@ -20,7 +20,6 @@ class CheckLogin extends React.Component {
 		})
 			.then((response) => response.json())
 			.then((rs) => {
-				console.log(rs);
 				if (rs.isAdmin) {
 					dispatch(login());
 				}
