@@ -24,6 +24,7 @@
 
 .publishBody {
 	margin-bottom: 25px;
+	padding-bottom: 25px;
 }
 
 
@@ -41,7 +42,6 @@
 }
 
 .buttons {
-	display: flex;
 }
 
 .button {

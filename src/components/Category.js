@@ -35,9 +35,7 @@ class Category extends React.Component {
 	
 	
 	
-	fetchCategoryArticles() {
-		
-		
+	fetchCategoryArticles() {		
 		fetch(config.url + "/getCategoryPage",
 		{
 			method: 'post',
@@ -55,7 +53,6 @@ class Category extends React.Component {
 				console.log(error);
 			});
 	}
-	//`/${this.state.cat}/:article`
 	
 	render() {
 		return (
@@ -74,7 +71,7 @@ class Category extends React.Component {
 				<h1>Testing { this.state.cat } Page</h1>
 			</div>
 			<div>
-				<Link to={`/${this.state.cat}/page=${this.state.nextPage}`}>
+				<Link to={`/cat/${this.state.cat}/page=${this.state.nextPage}`}>
 					Next Page
 				</Link>
 			</div>

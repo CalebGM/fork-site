@@ -1,6 +1,7 @@
 /* eslint import/no-webpack-loader-syntax: off */
 
 import React from 'react';
+import { Redirect } from 'react-router';
 
 import Editor from 'draft-js-plugins-editor';
 import {EditorState, RichUtils, convertToRaw} from 'draft-js';
@@ -50,11 +51,13 @@ class EditArticle extends React.Component {
 		var categories = new Set(props.categories);
 		
 		this.state = {editorStateBody: props.article,
+						ogTitle: props.title,
 						title: props.title,
 						author: props.author,
 						category: categories,
 						preview: false,
 						finishPublish: false,
+						deleteRedirect: false,
 						fetches: {}
 					};
 						
@@ -107,6 +110,7 @@ class EditArticle extends React.Component {
 			var formData = new FormData(myForm);
 			var articleContent = this.state.editorStateBody.getCurrentContent();
 			
+			var ogTitle = this.state.ogTitle;
 			var cats = formData.getAll('cat');
 			var title = formData.get('title');
 			var author = formData.get('author');
@@ -149,7 +153,7 @@ class EditArticle extends React.Component {
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ categories: cats, title: title, author: author, article: articleRaw })
+					body: JSON.stringify({ categories: cats, title: title, ogTitle: ogTitle, author: author, article: articleRaw })
 				})
 					.then((response) => {
 						this.setState({ finishPublish: true });
@@ -165,25 +169,47 @@ class EditArticle extends React.Component {
 	uploadImage(key, entityObject, articleContent) {
 		let entity = entityObject[key];
 		let oldUrl = entity.data.src;
+		if (entity.data.file) {
+			let localFile = new FormData();
+			localFile.append('file', entity.data.file);
 				
-		return fetch(config.url + "/admin/publish/uploadImage",
-		{
-			method: 'post',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ url: oldUrl })
-		})
-			.then((response) => response.json())
-			.then((rs) => {
-				articleContent = articleContent.replaceEntityData(key, { src: rs.url });
-				let newArticle = EditorState.createWithContent(articleContent);
-	
-				this.setState({ editorStateBody: newArticle });
+			return fetch(config.url + "/admin/publish/uploadLocalImage",
+			{
+				method: 'post',
+				body: localFile,
+				credentials: 'include'
 			})
-			.catch((error) => {
-				console.log(error);
-			});
+				.then((response) => response.json())
+				.then((rs) => {
+					articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
+					let newArticle = EditorState.createWithContent(articleContent);
+		
+					this.setState({ editorStateBody: newArticle });
+				})
+				.catch((error) => {
+					console.log(error);
+				});
+		} else {
+			return fetch(config.url + "/admin/publish/uploadImage",
+			{
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ url: oldUrl }),
+				credentials: 'include'
+			})
+				.then((response) => response.json())
+				.then((rs) => {
+					articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
+					let newArticle = EditorState.createWithContent(articleContent);
+		
+					this.setState({ editorStateBody: newArticle });
+				})
+				.catch((error) => {
+					console.log(error);
+				});
+		}
 	}
 	
 	
@@ -228,16 +254,48 @@ class EditArticle extends React.Component {
 		this.setState({ preview: false });
 	}
 	
+	_onDeleteClick() {
+		var result = window.confirm("Are you sure you want to delete this article?");
+		if (result) {
+			fetch(config.url + "/admin/publish/deleteArticle",
+			{
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ key: this.state.ogTitle }),
+				credentials: 'include'
+			})
+				.then((response) => {
+					if(response.status === 200) {
+						this.setState({ deleteRedirect: true });
+						alert("Article Successfully Deleted");
+					}
+				})
+				.catch((error) => {
+					console.log(error);
+				})
+					
+		}
+	}
+	
 	_focus = () => {
 		this.editor.focus();
 	}
 	
 	render() {
-		const { onPublish } = this.props;
-		const { finishPublish } = this.state;
+		const { onCancel, onPublish } = this.props;
+		const { finishPublish, title, ogTitle, deleteRedirect } = this.state;
 		
-		if (finishPublish)
-			{onPublish()};
+		if (finishPublish && (title !== ogTitle)) {
+			return <Redirect to={`/story/${title}`} />;
+		} else if (finishPublish) {
+			onPublish();
+		} else if (deleteRedirect) {
+			return <Redirect to={`/`} />
+		}
+			
+			
 		
 	
 		return (
@@ -256,8 +314,14 @@ class EditArticle extends React.Component {
 					</div>
 				) : (
 					<div>
-						<div>
-							<h1>Edit Your Article</h1>
+						<div style={{display: 'flex', justifyContent: 'space-between'}}>
+							<div>
+								<h1>Edit Your Article</h1>
+							</div>
+							<div style={{paddingTop: '24px'}}>
+								<button style={{fontSize: '18px'}} onClick={this._onDeleteClick.bind(this)}>Delete Article</button>
+							</div>
+							
 						</div>
 						
 						<div className={editorStyles.form} >
@@ -318,9 +382,18 @@ class EditArticle extends React.Component {
 						</div>
 						
 						<div>
-							<button onClick={this._onPreviewClick.bind(this)}>Preview Article</button>
+							<div style={{display: 'inline-block', float: 'left'}}>
+								<button onClick={() => onCancel()}>Cancel Edits</button>
+							</div>
 						
-							<input type="submit" value="Submit Article" form="publish" />
+							<div style={{display: 'inline-block', float: 'right'}}>
+								<div style={{display: 'inline-block', paddingRight: '10px'}}>
+									<button onClick={this._onPreviewClick.bind(this)}>Preview Article</button>
+								</div>
+								<div style={{display: 'inline-block'}}>
+									<input type="submit" value="Submit Article" form="publish" />
+								</div>
+							</div>
 						</div>
 					</div>
 				)}

@@ -59,6 +59,7 @@ class AdminLogin extends React.Component {
 	render() {
 		const { redirectUrl } = this.state;
 		const { login } = this.props;
+	
 		
 		if(login && redirectUrl) {
 			return <Redirect to={redirectUrl} />;

@@ -44,11 +44,19 @@ class Article extends React.Component {
 						updated: '',
 						inEdit: false
 					};
+		this.onCancel = this.onCancel.bind(this);
 		this.onPublish = this.onPublish.bind(this);
 	}
 	
 	componentDidMount() {
 		this.fetchArticle();
+	}
+	
+	componentWillReceiveProps(nextProps) {
+		if (this.props.match.params.article !== nextProps.match.params.article) {
+			this.setState({ title: nextProps.match.params.article },
+				() => this.fetchArticle());
+		}
 	}
 	
 	
@@ -113,9 +121,14 @@ class Article extends React.Component {
 	onChange() {
 	}
 	
+	onCancel() {
+		this.cancelEdit();
+	}
+	
 	onPublish() {
 		this.fetchArticle();
 	}
+	
 	
 	render() {
 		const { login } = this.props;
@@ -133,15 +146,15 @@ class Article extends React.Component {
 							author={author}
 							categories={categories}
 							created={created}
+							onCancel={this.onCancel}
 							onPublish={this.onPublish}
 							
 						/>
-						<button onClick={this.cancelEdit.bind(this)}>Cancel Edits</button>
 					</div>
 				) : (
 					<div>
 						{login ? (
-							<button onClick={this.startEdit.bind(this)}>Edit Article</button>
+							<button onClick={this.startEdit.bind(this)}>Edit/Delete Article</button>
 						) : (
 							<div></div>
 						)}

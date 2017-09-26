@@ -3,36 +3,36 @@ var app = express();
 var cookieParser = require('cookie-parser');
 var fs = require('fs');
 var request = require('request').defaults({ encoding: null });
-var Stream = require('stream');
 var bodyParser = require('body-parser');
 var AWS = require('aws-sdk');
 var mysql = require('mysql');
+var fileUpload = require('express-fileupload');
 
 var env = process.env.NODE_ENV || 'development';
-//console.log(process.env.NODE_ENV);
-var config = require('./config')[env];
+var config = require('./config/config.js')[env];
 
-//console.log(config);
+var port = process.env.PORT || 3001;
 
 
 var s3 = new AWS.S3();
 
 var connection = mysql.createConnection({
-	host: config.database.host,
-	user: config.database.user,
-	password: config.database.password,
-	port: config.database.port
+	host: process.env.NODE_ENV ? process.env.RDS_HOSTNAME : config.database.host,
+	user: process.env.NODE_ENV ? process.env.RDS_USERNAME : config.database.user,
+	password: process.env.NODE_ENV ? process.env.RDS_PASSWORD : config.database.password,
+	port: process.env.NODE_ENV ? process.env.RDS_PORT : config.database.port
 });
+
+
 
 const categories = ['Art', 'Comics', 'Fake_News', 'Life', 'Movies', 'Music', 'Sports', 'Video_Games'];
 const table = config.database.articles;
+const table2 = config.database.users;
 
 
-//app.use(bodyParser.urlencoded({
-//	extended: true
-//}));
 app.use(cookieParser());
 app.use(bodyParser.json());
+app.use(fileUpload());
 
 
 app.use(function(req, res, next) {
@@ -48,7 +48,7 @@ app.get('/', function(req, res) {
 	if (req.cookies[cookieName] === config.cookie.value) {
 		res.cookie(config.cookie.name, config.cookie.value, { maxAge: 5400000, httpOnly: true }).send({ isAdmin: true });
 	} else {
-		res.sendStatus(200);
+		res.status(200).send({ isAdmin: false });
 	}
 	
 });
@@ -59,6 +59,7 @@ app.post('/getHomePage', function(req, res) {
 	
 	var sql = "SELECT * FROM ?? ORDER BY Created DESC LIMIT ?, 15";
 	sql = mysql.format(sql, [table, offset]);
+
 	
 	connection.query(sql, function (error, results, fields) {
 		if (error) {
@@ -66,7 +67,7 @@ app.post('/getHomePage', function(req, res) {
 			res.sendStatus(500);
 			return;
 		} else {
-			res.send(results);
+			res.status(200).send(results);
 		}
 	});
 });
@@ -89,7 +90,7 @@ app.post('/getAuthorPage', function(req, res) {
 			res.sendStatus(500);
 			return;
 		} else {
-			res.send(results);
+			res.status(200).send(results);
 		}
 	});
 });
@@ -111,7 +112,7 @@ app.post('/getCategoryPage', function(req, res) {
 			res.sendStatus(500);
 			return;
 		} else {
-			res.send(results);
+			res.status(200).send(results);
 		}
 	});
 	
@@ -119,7 +120,7 @@ app.post('/getCategoryPage', function(req, res) {
 
 app.post('/getArticle', function(req, res) {
 	var key = req.body.key;
-	var bucket = "ata-articles";
+	var bucket = config.s3.articleBucket;
 	
 	var sql = "SELECT * FROM ?? WHERE Title = ?";
 	sql = mysql.format(sql, [table, key]);
@@ -135,8 +136,7 @@ app.post('/getArticle', function(req, res) {
 					res.sendStatus(500);
 				} else {
 					var content = data.Body.toString();
-					console.log('after the s3');
-					res.send({ body: content, info: results });
+					res.status(200).send({ body: content, info: results });
 				}
 			});
 		}
@@ -151,7 +151,7 @@ app.post('/checkLogin', function(req, res) {
 	var password = req.body.password;
 	
 	var sql = "SELECT COUNT(*) AS isAdmin FROM ?? WHERE ata_username = ? AND ata_password = ?";
-	sql = mysql.format(sql, [table, username, password]);
+	sql = mysql.format(sql, [table2, username, password]);
 	
 	connection.query(sql, function (error, results, fields) {
 		if (error) {
@@ -159,60 +159,101 @@ app.post('/checkLogin', function(req, res) {
 			return;
 		} else {
 			if (results[0].isAdmin === 1) {
-				console.log('hi');
-				res.cookie(config.cookie.name, config.cookie.value, { maxAge: 5400000, httpOnly: true }).send({ isAdmin: true });
+				res.cookie(config.cookie.name, config.cookie.value, { maxAge: 5400000, httpOnly: true }).status(200).send({ isAdmin: true });
 			} else {
-				res.send({ isAdmin: false });
+				res.status(200).send({ isAdmin: false });
 			}
 		}
 	});
 });
 
 
+
+app.get('/adminLogout', function(req, res) {
+	res.clearCookie(config.cookie.name).sendStatus(200);
+});
+
+
+
+
+
+
 app.post('/admin/publish/uploadImage', function(req, res) {
 	var oldUrl = req.body.url;
+	var bucket = config.s3.mediaBucket;
+	var albumPhotosKey = encodeURIComponent("media") + '/';
+	
 	var fileSplit = oldUrl.split('/');
 	var fileName = fileSplit[fileSplit.length - 1];
 	if(!fileName) {
 		fileName = fileSplit[fileSplit.length - 2];
 	};
-
+	
+	var photoKey = albumPhotosKey + fileName;
 	request.get(oldUrl, function(err, res2, body) {
-		var bucket = 'ata-media';
-		var albumPhotosKey = encodeURIComponent("media") + '/';
-		
-		var photoKey = albumPhotosKey + fileName;
-
-		
-		var params = {
-			Bucket: bucket,
-			Key: photoKey,
-			Body: body,
-			ContentDisposition: 'inline',
-			ContentType: 'image/jpeg',
-			ACL: 'public-read'
-		};
-		
-		s3.upload(params, function(err, data) {
-			if (err) {
-				return alert('There was an error uploading your photo: ', err.message);
-			} else {
-				var newFileSplit = data.Location.split('/');
-				var newFileName = newFileSplit[newFileSplit.length - 1];
-				var newUrl = "https://s3-us-west-2.amazonaws.com/ata-media/media/" + newFileName;
-				res.send({ url: newUrl });
-			}
-		});
+		if (err) {
+			console.log(err);
+		} else {
+			let params = {
+				Bucket: bucket,
+				Key: photoKey,
+				Body: body,
+				ContentDisposition: 'inline',
+				ContentType: 'image/jpeg',
+				ACL: 'public-read'
+			};
+			
+			s3.upload(params, function(err, data) {
+				if (err) {
+					console.log(err);
+				} else {
+					var newFileSplit = data.Location.split('/');
+					var newFileName = newFileSplit[newFileSplit.length - 1];
+					var newUrl = config.s3.imgUrl + newFileName;
+					res.status(200).send({ url: newUrl });
+				}
+			});
+		}
 	});
 });
 
+
+
+app.post('/admin/publish/uploadLocalImage', function(req, res) {
+	var files = req.files;
+	var file = files.file;
+	var bucket = config.s3.mediaBucket;
+	var albumPhotosKey = encodeURIComponent("media") + '/';
+	
+	var fileName = file.name;
+	
+	var photoKey = albumPhotosKey + fileName;
+	let params = {
+		Bucket: bucket,
+		Key: photoKey,
+		Body: file.data,
+		ContentDisposition: 'inline',
+		ContentType: 'image/jpeg',
+		ACL: 'public-read'
+	};
+			
+	s3.upload(params, function(err, data) {
+		if (err) {
+			console.log(err);
+		} else {
+			var newFileSplit = data.Location.split('/');
+			var newFileName = newFileSplit[newFileSplit.length - 1];
+			var newUrl = config.s3.imgUrl + newFileName;
+			res.status(200).send({ url: newUrl });
+		}
+	});
+});
 
 
 
 app.post('/admin/publish/postArticle', function(req, res) {
 	
 	var cats = req.body.categories;
-	console.log(cats);
 	var key = req.body.title;
 	var author = req.body.author;
 	var date = new Date();
@@ -231,22 +272,20 @@ app.post('/admin/publish/postArticle', function(req, res) {
 	var inserts = [table, key, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], isCat[5],
 					isCat[6], isCat[7], date, date];
 	sql = mysql.format(sql, inserts);
-	console.log(sql);
+	
 	connection.query(sql, function (error, results, fields) {
 		if (error) {
 			console.log(error);
 			return;
 		} else {
-			console.log(results.insertId);
 			var article = req.body.article;
 			var art = JSON.stringify(article);
-			var bucket = "ata-articles";
+			var bucket = config.s3.articleBucket;
 			s3.putObject(params = { Bucket: bucket, Key: key, Body: art}, function(err, data) {
 				if (err) {
 					console.log(err);
 					res.send(err);
 				} else {
-					console.log(data);
 					res.sendStatus(200);
 				}
 			});
@@ -257,10 +296,26 @@ app.post('/admin/publish/postArticle', function(req, res) {
 });
 
 
-app.post('/admin/publish/updateArticle', function(req, res) {
-	
+
+var uploadArticle = function (req, res, next) {
+	var key = req.body.title;
+	var article = req.body.article;
+	var art = JSON.stringify(article);
+	var bucket = config.s3.articleBucket;
+	s3.putObject(params = { Bucket: bucket, Key: key, Body: art}, function(err, data) {
+		if (err) {
+			console.log(err);
+			res.sendStatus(500);
+		} else {
+			res.sendStatus(200);
+		}
+	});
+}
+
+
+var updateSql = function (req, res, next) {
 	var cats = req.body.categories;
-	console.log(cats);
+	var oldKey = req.body.ogTitle;
 	var key = req.body.title;
 	var author = req.body.author;
 	var date = new Date();
@@ -274,36 +329,72 @@ app.post('/admin/publish/updateArticle', function(req, res) {
 	}
 	
 			
-	var sql = "UPDATE ?? SET Author = ?, Art = ?, Comics = ?, Fake_News = ?, Life = ?, Movies = ?, Music = ?, " +
+	var sql = "UPDATE ?? SET Title = ?, Author = ?, Art = ?, Comics = ?, Fake_News = ?, Life = ?, Movies = ?, Music = ?, " +
 				"Sports = ?, Video_Games = ?, Last_Updated = ? WHERE Title = ?;";
-	var inserts = [table, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], isCat[5],
-					isCat[6], isCat[7], date, key];
+	var inserts = [table, key, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], isCat[5],
+					isCat[6], isCat[7], date, oldKey];
 	sql = mysql.format(sql, inserts);
-	console.log(sql);
+	
+	connection.query(sql, function (error, results, fields) {
+		if (error) {
+			console.log(error);
+			res.sendStatus(500);
+			return;
+		} else {
+			next();
+		}
+	});
+}
+
+var deleteArticle = function (req, res, next) {
+	var oldKey = req.body.ogTitle;
+	var key = req.body.title;
+	
+	if (oldKey === key) {
+		next();
+	} else {
+		var bucket = config.s3.articleBucket;
+		s3.deleteObject(params = { Bucket: bucket, Key: oldKey }, function(err, data) {
+			if(err) {
+				console.log(err);
+				res.status(500).send(err);
+			} else {
+				next();
+			}
+		});
+	}
+}
+	
+
+
+app.post('/admin/publish/updateArticle', [updateSql, deleteArticle, uploadArticle]);
+
+
+app.post('/admin/publish/deleteArticle', function(req, res) {
+	var key = req.body.key;
+	
+	var sql = "DELETE FROM ?? WHERE Title = ?";
+	sql = mysql.format(sql, [table, key]);
+	
 	connection.query(sql, function (error, results, fields) {
 		if (error) {
 			console.log(error);
 			return;
 		} else {
-			console.log(results.insertId);
-			var article = req.body.article;
-			var art = JSON.stringify(article);
-			var bucket = "ata-articles";
-			s3.putObject(params = { Bucket: bucket, Key: key, Body: art}, function(err, data) {
-				if (err) {
+			var bucket = config.s3.articleBucket;
+			s3.deleteObject(params = { Bucket: bucket, Key: key }, function(err, data) {
+				if(err) {
 					console.log(err);
-					console.log('hey');
-					res.send(err);
+					res.status(500).send(err);
 				} else {
-					console.log(data);
-					console.log('yo');
 					res.sendStatus(200);
 				}
 			});
 		}
 	});
-	
-
 });
+					
 
-app.listen(3001);
+
+
+app.listen(port);

@@ -180,25 +180,47 @@ class Publish extends React.Component {
 	uploadImage(key, entityObject, articleContent) {
 		let entity = entityObject[key];
 		let oldUrl = entity.data.src;
+		if (entity.data.file) {
+			let localFile = new FormData();
+			localFile.append('file', entity.data.file);
 				
-		return fetch(config.url + "/admin/publish/uploadImage",
-		{
-			method: 'post',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({ url: oldUrl })
-		})
-			.then((response) => response.json())
-			.then((rs) => {
-				articleContent = articleContent.replaceEntityData(key, { src: rs.url });
-				let newArticle = EditorState.createWithContent(articleContent);
-	
-				this.setState({ editorStateBody: newArticle });
+			return fetch(config.url + "/admin/publish/uploadLocalImage",
+			{
+				method: 'post',
+				body: localFile,
+				credentials: 'include'
 			})
-			.catch((error) => {
-				console.log(error);
-			});
+				.then((response) => response.json())
+				.then((rs) => {
+					articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
+					let newArticle = EditorState.createWithContent(articleContent);
+		
+					this.setState({ editorStateBody: newArticle });
+				})
+				.catch((error) => {
+					console.log(error);
+				});
+		} else {
+			return fetch(config.url + "/admin/publish/uploadImage",
+			{
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ url: oldUrl }),
+				credentials: 'include'
+			})
+				.then((response) => response.json())
+				.then((rs) => {
+					articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
+					let newArticle = EditorState.createWithContent(articleContent);
+		
+					this.setState({ editorStateBody: newArticle });
+				})
+				.catch((error) => {
+					console.log(error);
+				});
+		}
 	}
 	
 	
@@ -334,10 +356,13 @@ class Publish extends React.Component {
 							<InlineToolbar />
 						</div>
 						
-						<div>
-							<button onClick={this._onPreviewClick.bind(this)}>Preview Article</button>
-						
-							<input type="submit" value="Submit Article" form="publish" />
+						<div style={{display: 'inline-block', float: 'right'}}>
+							<div style={{display: 'inline-block', paddingRight: '10px'}}>
+								<button onClick={this._onPreviewClick.bind(this)}>Preview Article</button>
+							</div>
+							<div style={{display: 'inline-block'}}>
+								<input type="submit" value="Submit Article" form="publish" />
+							</div>
 						</div>
 					</div>
 				)}
