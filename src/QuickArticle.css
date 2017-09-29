@@ -16,7 +16,8 @@
 
 .SubInfo{
 	display: flex;
-	
+	flex-wrap: wrap;
+	max-width: 100%;
 	font-size: 15px;
 
 }
@@ -29,10 +30,13 @@
 
 .Categories{
 	display: flex;
+	flex-wrap: wrap;
 	padding-right: 15px;
 }
 
 .CatList{
+	display: flex;
+	flex-wrap: wrap;
 	margin: 0;
 	padding: 0;
 }
@@ -41,6 +45,11 @@
 	display: inline;
 	padding: 3px;
 }
+
+.Created{
+	display: flex;
+}
+	
 
 
 .TitleLink{
@@ -51,4 +60,17 @@
 .CatLink{
 	text-decoration: none;
 	color: blue;
+}
+
+
+@media screen and (max-width: 550px) {
+	Body {
+		font-size: 16px;
+	}
+	.Title {
+		font-size: 1.5em;
+	}
+	.SubInfo {
+		font-size: 0.9em;
+	}
 }

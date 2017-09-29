@@ -29,15 +29,18 @@
 }
 
 .Sidebar {
-	width: 10vw;
+	width: 20%;
+	max-width: 220px;
 	overflow: auto;
-	height: 30vh;
+	height: 100vh;
 	background-color: #eee;
 	text-align: center;
+	margin-top: 300px
 }
 
 .Main {
 	flex: 1;
+	max-width: 100%;
 }
 
 .Tabs {
@@ -50,12 +53,58 @@
 
 
 .Adbar {
-	width: 20vw;
-	overflow: auto;
-	height: 30vh;
 }
 
 .Link {
 	text-decoration: none;
 	color: black;
 }
+
+.burger {
+	display: none;
+}
+
+.Sidebar.open {
+	display: flex;
+}
+
+@media screen and (max-width: 550px) {
+
+	.Sidebar {
+		 width: 300px;
+		 height: 100%;
+		 position: absolute;
+		 box-sizing: border-box;
+		 -webkit-transform: translate(-300px, 0);
+		 transform: translate(-300px, 0);
+		 transition: transform 0.3s ease;
+		 background-color: white;
+		 margin: 0;
+	 }
+	 .SidebarOpen {
+		 width: 300px;
+		 height: 100%;
+		 position: absolute;
+		 text-align: center;
+		 box-sizing: border-box;
+		 transition: transform 0.3s ease;
+		 background-color: white;
+		 -webkit-transform: translate(0, 0);
+		 transform: translate(0, 0);
+		 z-index: 10;
+	 }
+	 .burger {
+		 float: right;
+		 display: inline;
+	 }
+}
+
+@media screen and (min-width: 1350px) {
+	.App {
+		width: 1350px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+}
+

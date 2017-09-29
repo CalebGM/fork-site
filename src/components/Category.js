@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
 import QuickArticleDisplay from './QuickArticleDisplay.js';
+import CategoryStyles from '../Category.css';
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
@@ -56,8 +57,8 @@ class Category extends React.Component {
 	
 	render() {
 		return (
-		<div>
-			<div>
+		<div className={CategoryStyles.main}>
+			<div className={CategoryStyles.articleList}>
 				{this.state.articles ? (
 					this.state.articles.map(article => (
 						<div key={article.Title}>
@@ -70,7 +71,7 @@ class Category extends React.Component {
 				
 				<h1>Testing { this.state.cat } Page</h1>
 			</div>
-			<div>
+			<div className={CategoryStyles.link}>
 				<Link to={`/cat/${this.state.cat}/page=${this.state.nextPage}`}>
 					Next Page
 				</Link>

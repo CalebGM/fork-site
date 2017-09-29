@@ -14,17 +14,48 @@ import logo from './logo.svg';
 import appStyles from './App.css';
 
 class App extends Component {
+	
+	constructor(props) {
+		super(props);
+		this.state = { open: false };
+	}
+	
+	componentDidMount() {
+		document.addEventListener('click', this.closePopover.bind(this));
+	}
+	
+	componentWillUnmount() {
+		document.removeEventListener('click', this.closePopover.bind(this));
+	}
+	
+	closePopover() {
+		if(!this.preventNextClose && this.state.open) {
+			this.setState({open: false});
+		}
+		
+		this.preventNextClose = false;
+	}
+	openMenu() {
+		if(!this.state.open) {
+			this.preventNextClose = true;
+			this.setState({open: true});
+		}
+	}
 
 	render() {
+		const { open } = this.state;
+		const MenuStyle = open ? appStyles.SidebarOpen : appStyles.Sidebar;
+		
 		return (
 			<Router>
 			 <div className={appStyles.App}>
 			 
-				<div className={appStyles.Sidebar}>
+				<div id="menu" className={MenuStyle}>
 					<Sidebar />
 				</div>
 				
-				<div className={appStyles.Main}>
+				<div id="main" className={appStyles.Main}>
+					<button className={appStyles.burger} onClick={this.openMenu.bind(this)}><i className="fa fa-bars"></i></button>
 					<Link className={appStyles.Link} to="/">
 						<div className={appStyles.header}>
 							<Header />

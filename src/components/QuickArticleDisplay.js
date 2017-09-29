@@ -36,7 +36,7 @@ class QuickArticleDisplay extends React.Component {
 				</div>
 				<div className={quickDisplay.SubInfo}>
 					<div className={quickDisplay.Author}>
-						Written by: 
+						By: 
 						<Link to={`/auth/${this.props.article.Author}/page=1`}>
 							{this.props.article.Author}
 						</Link>

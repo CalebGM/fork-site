@@ -35,9 +35,9 @@ class Home extends React.Component {
 			var nextPage = (page + 1).toString();
 			this.setState({ articles: null, page: nextProps.match.params.num, nextPage: nextPage },
 				() => this.fetchHomeArticles());
-		} else {
-			this.setState({ articles: null, page: 1, nextPage: 2 },
-				() => this.fetchHomeArticles());
+		} else if (nextProps !== this.props) {
+			//this.setState({ articles: null, page: 1, nextPage: 2 },
+				//() => this.fetchHomeArticles());
 		}
 	}
 	
