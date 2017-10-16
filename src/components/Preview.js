@@ -1,5 +1,6 @@
 import React from 'react';
 import Editor from 'draft-js-plugins-editor';
+import ImageGallery from 'react-image-gallery';
 import createVideoPlugin from 'draft-js-video-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
@@ -28,7 +29,6 @@ const plugins = [imagePlugin, focusPlugin, videoPlugin];
 class Preview extends React.Component {
 	constructor(props) {
 		super(props);
-		console.log(this);
 		var cats = Array.from(props.categories);
 		var created = new Date();
 		created = created.getMonth()+1 + "/" + created.getDate() + "/" + created.getFullYear();
@@ -40,6 +40,7 @@ class Preview extends React.Component {
 						title: props.title,
 						categories: cats,
 						author: props.author,
+						images: props.images,
 						created: created,
 						updated: updated};
 	}
@@ -47,7 +48,21 @@ class Preview extends React.Component {
 	onChange() {
 	}
 	
+	onScreenChange(stuff) {
+		if(stuff) {
+			var index = this._imageGallery.getCurrentIndex();
+			console.log(index);
+			var win = window.open(this.state.images[index].original, '_blank');
+			if (win) {
+				win.focus();
+			} else {
+				alert('Please allow popups for this website');
+			}
+		}
+	}
+	
 	render() {
+		const { images } = this.state;
 		return (
 			<div className={ArticleStyles.Article}>
 				<div className={ArticleStyles.Title}>
@@ -82,6 +97,20 @@ class Preview extends React.Component {
 						{this.state.updated}
 					</div>
 				</div>
+				
+				<div className={ArticleStyles.ImageBar}>
+					{images.length > 0 ? (
+						<ImageGallery
+							items={images}
+							showPlayButton={false}
+							showFullscreenButton={images.length > 0 ? true : false}
+							ref={i => this._imageGallery = i}
+							onScreenChange={this.onScreenChange.bind(this)}
+						/>
+					) : (
+						<div></div>
+					)}
+				</div>				
 		
 				<div className={ArticleStyles.Body}>
 					<Editor 

@@ -9,7 +9,12 @@ import {EditorState, RichUtils, convertToRaw} from 'draft-js';
 import createVideoPlugin from 'draft-js-video-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
-import createInlineToolbarPlugin from 'draft-js-inline-toolbar-plugin';
+import createToolbarPlugin from 'last-draft-js-toolbar-plugin';
+import '!style-loader!css-loader!../draftToolbarStyles.css';
+import createLinkifyPlugin from 'draft-js-linkify-plugin';
+import '!style-loader!css-loader!draft-js-linkify-plugin/lib/plugin.css';
+import createLinkPlugin from 'draft-js-link-plugin';
+import '!style-loader!css-loader!draft-js-link-plugin/lib/plugin.css';
 
 import editorStyles from '../Editor.css';
 import videoStyles from '../Video.css';
@@ -18,19 +23,33 @@ import '!style-loader!css-loader!draft-js-inline-toolbar-plugin/lib/plugin.css';
 import 'draft-js-image-plugin/lib/plugin.css';
 
 import MediaAdd from './MediaAdd.js';
+import LogoAdd from './LogoAdd.js';
+import ImageBar from './ImageBar.js';
 import Preview from './Preview.js';
 
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
 
-
-
-const toolbarPlugin = createInlineToolbarPlugin();
+const linkPlugin = createLinkPlugin({
+	component: (props) => {
+		const { contentState, ...rest} = props;
+		// jsx-a11y/anchor-has-content
+		return (<a {...rest} target="_blank"/>);
+	}
+});
+const linkifyPlugin = createLinkifyPlugin({
+	component: (props) => {
+		const { contentState, ...rest} = props;
+		// jsx-a11y/anchor-has-content
+		return (<a {...rest} target="_blank"/>);
+	}
+});
+const toolbarPlugin = createToolbarPlugin();
+const { Toolbar } = toolbarPlugin;
 const focusPlugin = createFocusPlugin();
 const imagePlugin = createImagePlugin({ theme: imageStyles });
 const videoPlugin = createVideoPlugin({theme: videoStyles})
-const { InlineToolbar } = toolbarPlugin;
 
 function mediaBlockStyleFn(contentBlock) {
 	const type = contentBlock.getType();
@@ -40,7 +59,7 @@ function mediaBlockStyleFn(contentBlock) {
 }
 
 
-const plugins = [focusPlugin, videoPlugin, toolbarPlugin, imagePlugin];
+const plugins = [focusPlugin, videoPlugin, toolbarPlugin, linkifyPlugin, imagePlugin, linkPlugin];
 
 const categories = ['Art', 'Comics', 'Fake_News', 'Life', 'Movies', 'Music', 'Sports', 'Video_Games'];
 
@@ -55,6 +74,8 @@ class EditArticle extends React.Component {
 						title: props.title,
 						author: props.author,
 						category: categories,
+						logoImg: { original: config.baseUrl + props.title + '/logo' },
+						images: props.images,
 						preview: false,
 						finishPublish: false,
 						deleteRedirect: false,
@@ -63,6 +84,8 @@ class EditArticle extends React.Component {
 						
 		this.onChangeBody = (editorStateBody) => this.setState({editorStateBody});
 		this.createCheckbox = this.createCheckbox.bind(this);
+		this.modifyLogo = this.modifyLogo.bind(this);
+		this.modifyImageBar = this.modifyImageBar.bind(this);
 		this.handleChange = this.handleChange.bind(this);
 		this.handleTitleChange = this.handleTitleChange.bind(this);
 		this.handleAuthorChange = this.handleAuthorChange.bind(this);
@@ -140,8 +163,16 @@ class EditArticle extends React.Component {
 			var fetches = this.state.fetches;
 			var promises = [];
 			for (var key in fetches) {
-				let request = this.uploadImage(key, fetches, articleContent);
+				let request = this.uploadDraftImage(key, fetches, articleContent);
 				promises.push(request);
+			}
+			
+			var logoImgRequest = this.uploadLogoImage();
+			promises.push(logoImgRequest);
+			
+			if (this.state.images.length > 0) {
+				var imgBarRequest = this.uploadImgBar();
+				promises.push(imgBarRequest);
 			}
 			
 			Promise.all(promises).then(() => {
@@ -166,12 +197,99 @@ class EditArticle extends React.Component {
 	}
 	
 	
-	uploadImage(key, entityObject, articleContent) {
+	uploadLogoImage() {
+		const { logoImg, title } = this.state;
+		var junkBlob = new Blob(['sup'], {type: 'text/plain'});
+		
+		if (logoImg.file) {
+			let localFile = new FormData();
+			localFile.append('file', logoImg.file, 'logo');
+			localFile.append('title', junkBlob, title);
+			localFile.append('logo', junkBlob);
+			
+			return fetch(config.url + "/admin/publish/uploadLocalImage",
+				{
+					method: 'post',
+					body: localFile,
+					credentials: 'include'
+				})
+					.then((response) => response.json())
+					.then((rs) => {
+					})
+					.catch((error) => {
+						console.log(error);
+					});
+		} else {
+			return fetch(config.url + "/admin/publish/uploadImage",
+			{
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ url: logoImg.original, title: title, logo: true }),
+				credentials: 'include'
+			})
+				.then((response) => response.json())
+				.then((rs) => {
+				})
+				.catch((error) => {
+					console.log(error);
+				});
+		}
+	}
+	
+	uploadImgBar() {
+		const { images, title } = this.state;
+		var junkBlob = new Blob(['sup'], {type: 'text/plain'});
+		for (var i = 0; i < images.length; i++) {
+			if (images[i].file) {
+				let localFile = new FormData();
+				localFile.append('file', images[i].file);
+				localFile.append('title', junkBlob, title);
+				localFile.append('imgBar', junkBlob);
+				
+				return fetch(config.url + "/admin/publish/uploadLocalImage",
+					{
+						method: 'post',
+						body: localFile,
+						credentials: 'include'
+					})
+						.then((response) => response.json())
+						.then((rs) => {
+						})
+						.catch((error) => {
+							console.log(error);
+						});
+			} else {
+				return fetch(config.url + "/admin/publish/uploadImage",
+				{
+					method: 'post',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ url: images[i].original, title: title, imgBar: true }),
+					credentials: 'include'
+				})
+					.then((response) => response.json())
+					.then((rs) => {
+					})
+					.catch((error) => {
+						console.log(error);
+					});
+			}
+		}
+	}	
+	
+	uploadDraftImage(key, entityObject, articleContent) {
 		let entity = entityObject[key];
 		let oldUrl = entity.data.src;
+		var junkBlob = new Blob(['sup'], {type: 'text/plain'});
 		if (entity.data.file) {
 			let localFile = new FormData();
 			localFile.append('file', entity.data.file);
+			localFile.append('title', junkBlob, this.state.title);
+			localFile.append('draft', junkBlob);
+			
 				
 			return fetch(config.url + "/admin/publish/uploadLocalImage",
 			{
@@ -196,7 +314,7 @@ class EditArticle extends React.Component {
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ url: oldUrl }),
+				body: JSON.stringify({ url: oldUrl, title: this.state.title, draft: true }),
 				credentials: 'include'
 			})
 				.then((response) => response.json())
@@ -283,6 +401,16 @@ class EditArticle extends React.Component {
 		this.editor.focus();
 	}
 	
+	modifyLogo(newLogo) {
+		this.setState({ logoImg: newLogo });
+	}
+	
+	modifyImageBar(newImages) {
+		console.log(newImages);
+		this.setState({ images: newImages });
+		console.log(this.state.images);
+	}
+	
 	render() {
 		const { onCancel, onPublish } = this.props;
 		const { finishPublish, title, ogTitle, deleteRedirect } = this.state;
@@ -307,9 +435,10 @@ class EditArticle extends React.Component {
 							title={this.state.title}
 							categories={this.state.category}
 							author={this.state.author}
+							images={this.state.images}
 						/>
 						<div>
-							<button onClick={this._onEditClick.bind(this)}>Edit Article</button>
+							<button onClick={this._onEditClick.bind(this)}>Back to Edits</button>
 						</div>
 					</div>
 				) : (
@@ -324,25 +453,45 @@ class EditArticle extends React.Component {
 							
 						</div>
 						
-						<div className={editorStyles.form} >
-							<form name="publish" id="publish" onSubmit={this.handleSubmit} >
-								<div >
-									<fieldset className={editorStyles.checkField} >
-										{this.createCheckboxes()}	
-									</fieldset>
+						<form className={editorStyles.form} name="publish" id="publish" onSubmit={this.handleSubmit} >
+							
+							<input className={editorStyles.TitleInput}
+								type="text"
+								name="title"
+								value={this.state.title}
+								placeholder="Give your article a unique title..."
+								onChange={this.handleTitleChange}
+								required 
+							/>
+							<div className={editorStyles.SubInfo}>
+								<div className={editorStyles.AuthorInput}>
+									<input type="text"
+										name="author"
+										value={this.state.author}
+										placeholder="Write the author's name..."
+										onChange={this.handleAuthorChange}
+										required
+									/>
 								</div>
-								
-								<div>
-									<input type="text" name="title" value={this.state.title} placeholder="Give your article a unique title..." onChange={this.handleTitleChange} required />
-								</div>
-								
-								<br /> 
-								<br />
-								
-								<div>
-									<input type="text" name="author" value={this.state.author} placeholder="Write the author's name..." onChange={this.handleAuthorChange} required />
-								</div>
-							</form>
+								<fieldset className={editorStyles.checkField} >
+									{this.createCheckboxes()}	
+								</fieldset>
+							</div>
+						</form>
+						
+						<div className={editorStyles.PictureSpace}>
+							<div className={editorStyles.LogoAdd}>
+								<LogoAdd
+									onChange={this.modifyLogo}
+									logo={this.state.logoImg}
+								/>
+							</div>
+							<div className={editorStyles.ImageBarAdd}>
+								<ImageBar
+									onChange={this.modifyImageBar}
+									images={this.state.images}
+								/>
+							</div>
 						</div>
 						
 						<br />
@@ -367,25 +516,24 @@ class EditArticle extends React.Component {
 							/>
 						</div>
 
-						<div className={editorStyles.editor} onClick={this._focus}>
+						<div className={editorStyles.editor} >
 							<Editor 
 								editorState = {this.state.editorStateBody} 
 								handleKeyCommand={this.handleKeyCommand}
-								textAlignment='right'
 								blockStyleFn={mediaBlockStyleFn}
 								onChange={this.onChangeBody} 
 								plugins={plugins}
-								ref={(element) => { this.editor = element; }}
+								textAlign='left'
+								//ref={(element) => { this.editor = element; }}
 								placeholder='Write the rest of your article.....'
 							/>
-							<InlineToolbar />
+							<Toolbar />
 						</div>
 						
 						<div>
 							<div style={{display: 'inline-block', float: 'left'}}>
 								<button onClick={() => onCancel()}>Cancel Edits</button>
 							</div>
-						
 							<div style={{display: 'inline-block', float: 'right'}}>
 								<div style={{display: 'inline-block', paddingRight: '10px'}}>
 									<button onClick={this._onPreviewClick.bind(this)}>Preview Article</button>

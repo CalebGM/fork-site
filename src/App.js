@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
+import { Route, Link } from 'react-router-dom';
 import Header from './components/Header.js';
 import Sidebar from './components/Sidebar.js';
 import Category from './components/Category.js';
@@ -47,14 +47,12 @@ class App extends Component {
 		const MenuStyle = open ? appStyles.SidebarOpen : appStyles.Sidebar;
 		
 		return (
-			<Router>
+			
+			
+			
 			 <div className={appStyles.App}>
-			 
-				<div id="menu" className={MenuStyle}>
-					<Sidebar />
-				</div>
-				
-				<div id="main" className={appStyles.Main}>
+			
+				<div className={appStyles.Main}>
 					<button className={appStyles.burger} onClick={this.openMenu.bind(this)}><i className="fa fa-bars"></i></button>
 					<Link className={appStyles.Link} to="/">
 						<div className={appStyles.header}>
@@ -66,15 +64,19 @@ class App extends Component {
 						</div>
 					</Link>
 					
-					<div>
-						<Route path="/" component={CheckLogin} />
-						<Route exact path="/" component={Home}/>
-						<Route exact path="/page=:num" component={Home}/>
-						<Route exact path="/auth/:author/page=:num" component={Author}/>
-						<Route exact path="/admin" component={AdminLogin}/>
-						<Route exact path="/admin/publish" component={Publish}/> 
-						<Route exact path="/story/:article" component={Article}/>
-						<Route exact path="/cat/:subCat/page=:num" component={Category}/>
+					<div className={MenuStyle}>
+						<Sidebar />
+					</div>
+					
+					<div className={appStyles.Body}>
+						<Route path="/realHome" component={CheckLogin} />
+						<Route exact path="/realHome" component={Home}/>
+						<Route exact path="/realHome/page=:num" component={Home}/>
+						<Route exact path="/realHome/auth/:author/page=:num" component={Author}/>
+						<Route exact path="/realHome/admin" component={AdminLogin}/>
+						<Route exact path="/realHome/admin/publish" component={Publish}/> 
+						<Route exact path="/realHome/story/:article" component={Article}/>
+						<Route exact path="/realHome/cat/:subCat/page=:num" component={Category}/>
 						
 					</div>
 				 </div>
@@ -85,9 +87,9 @@ class App extends Component {
 				
 			</div>
 					
-			</Router>
 		);
 	}
 }
+
 
 export default App;

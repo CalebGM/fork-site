@@ -14,7 +14,7 @@
 .editor :global(.public-DraftEditor-content) {
 	min-height: 300px;
 	max-height: 500px;
-	max-width: 900px;
+	max-width: 750px;
 	overflow: auto;
 }
 
@@ -23,6 +23,9 @@
 }
 
 .publishBody {
+	width: 100%;
+	max-width: 750px;
+	text-align: center;
 	margin-bottom: 25px;
 	padding-bottom: 25px;
 }
@@ -30,16 +33,79 @@
 
 .checkboxes {
 	display: inline-block;
-	padding: 5px;
+	padding: 3px;
 }
 
-.checkField {
-
+input[type="checkbox"]{
+	width: 10px;
+	height: 11px;
 }
+
+
 
 .form {
-	border-style: solid;
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
+	box-sizing: border-box;
+	border: thin solid #ddd;
+	box-shadow: inset 0px 1px 8px -3px #ABABAB;
+	border-radius: 2px;
 }
+
+.TitleInput{
+	width: 100%;
+	font-family: arial, sans-serif;
+	font-size: 30px;
+	font-style: italic;
+	font-weight: bold;
+	border: none;
+}
+
+.SubInfo{
+	display: flex;
+	width: 100%;
+}
+
+.AuthorInput{
+	text-align: left;
+	width: 30%;
+}
+
+.AuthorInput > input{
+	border: none;
+}
+
+.AuthorInput:before{
+	content: 'By: ';
+	font-size: 13px;
+	padding-left: 4px;
+}
+
+
+.checkField {
+	border-style: none;
+	padding: 0;
+	width: 70%;
+	font-size: 14px;
+	text-align: left;
+}
+
+
+.PictureSpace{
+	display: flex;
+	width: 100%;
+}
+
+.LogoAdd{
+	width: 33.3%;
+}
+
+.ImageBarAdd{
+	width: 66.7%;
+}
+
+
 
 .buttons {
 }

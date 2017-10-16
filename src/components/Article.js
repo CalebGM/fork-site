@@ -1,13 +1,20 @@
+/* eslint import/no-webpack-loader-syntax: off */
+
 import React from 'react';
 import Editor from 'draft-js-plugins-editor';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import EditArticle from './EditArticle.js';
+import ImageGallery from 'react-image-gallery';
 
 import createVideoPlugin from 'draft-js-video-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
 import { EditorState, convertFromRaw } from 'draft-js';
+import createLinkifyPlugin from 'draft-js-linkify-plugin';
+import '!style-loader!css-loader!draft-js-linkify-plugin/lib/plugin.css';
+import createLinkPlugin from 'draft-js-link-plugin';
+import '!style-loader!css-loader!draft-js-link-plugin/lib/plugin.css';
 
 import editorStyles from '../Editor.css';
 import videoStyles from '../Video.css';
@@ -17,10 +24,26 @@ import ArticleStyles from '../Article.css';
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
 
+const linkPlugin = createLinkPlugin({
+	component: (props) => {
+		const { contentState, ...rest} = props;
+		// jsx-a11y/anchor-has-content
+		return (<a {...rest} target="_blank"/>);
+	}
+});
+const linkifyPlugin = createLinkifyPlugin({
+	component: (props) => {
+		const { contentState, ...rest} = props;
+		
+		return (
+			// jsx-a11y/anchor-has-content
+			<a {...rest} target="_blank"/>
+		);
+	}
+});
 const imagePlugin = createImagePlugin({ theme: imageStyles });
 const focusPlugin = createFocusPlugin();
 const videoPlugin = createVideoPlugin({theme: videoStyles});
-
 
 
 function mediaBlockStyleFn(contentBlock) {
@@ -30,7 +53,8 @@ function mediaBlockStyleFn(contentBlock) {
 	}
 }
 
-const plugins = [imagePlugin, focusPlugin, videoPlugin];
+
+const plugins = [focusPlugin, videoPlugin, linkifyPlugin, imagePlugin, linkPlugin];
 
 class Article extends React.Component {
 	constructor(props) {
@@ -42,8 +66,11 @@ class Article extends React.Component {
 						author: '',
 						created: '',
 						updated: '',
-						inEdit: false
+						images: [],
+						inEdit: false,
+						finished: false
 					};
+		this.onChange = (article) => this.setState({article});
 		this.onCancel = this.onCancel.bind(this);
 		this.onPublish = this.onPublish.bind(this);
 	}
@@ -89,12 +116,30 @@ class Article extends React.Component {
 				var updated = new Date(articleInfo.Last_Updated);
 				updated = updated.getMonth()+1 + "/" + updated.getDate() + "/" + updated.getFullYear();
 				
-				this.setState({ article: selArticle, ogArticle: selArticle, categories: newCat, 
+				this.setState({ article: selArticle, ogArticle: selArticle, categories: newCat, finished: true,
 								author: articleInfo.Author, created: created, updated: updated, inEdit: false });
 			})
 			.catch((error) => {
 				console.log(error);
 			});
+			
+		fetch(config.url + "/getImgBarMedia",
+		{
+			method: 'post',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ article: this.state.title }),
+			credentials: 'include'
+		})
+			.then((response) => response.json())
+			.then((rs) => {
+				console.log(rs.images);
+				this.setState({ images: rs.images });
+			})
+			.catch((error) => {
+				console.log(error);
+			});				
 	}
 	
 	
@@ -118,7 +163,28 @@ class Article extends React.Component {
 		return formatCat;
 	}
 	
-	onChange() {
+	withoutUnderscore(cat) {
+		var split = cat.split("_");
+		var formatCat = split[0].charAt(0) + split[0].slice(1);
+		
+		if (split[1]) {
+			return formatCat + " " + (split[1].charAt(0) + split[1].slice(1));
+		}
+		
+		return formatCat;
+	}
+	
+	onScreenChange(stuff) {
+		if(stuff) {
+			var index = this._imageGallery.getCurrentIndex();
+			console.log(index);
+			var win = window.open(this.state.images[index].original, '_blank');
+			if (win) {
+				win.focus();
+			} else {
+				alert('Please allow popups for this website');
+			}
+		}
 	}
 	
 	onCancel() {
@@ -129,10 +195,14 @@ class Article extends React.Component {
 		this.fetchArticle();
 	}
 	
+	_focus() {
+		this.editor.focus();
+	}
+	
 	
 	render() {
 		const { login } = this.props;
-		const { inEdit, article, title, author, categories, created } = this.state;
+		const { inEdit, article, title, author, categories, created, finished, images } = this.state;
 		const editMode = (login && inEdit);
 		
 		
@@ -146,6 +216,7 @@ class Article extends React.Component {
 							author={author}
 							categories={categories}
 							created={created}
+							images={images}
 							onCancel={this.onCancel}
 							onPublish={this.onPublish}
 							
@@ -176,10 +247,11 @@ class Article extends React.Component {
 									<ul className={ArticleStyles.CatList}>
 										{this.state.categories.map(cat => {
 											let lowerCat = this.toLower(cat);
+											let formatCat = this.withoutUnderscore(cat)
 											return (
 												<li className={ArticleStyles.Category} key={cat}>
 													<Link className={ArticleStyles.Link} to={`/cat/${lowerCat}/page=1`} >
-														{cat}
+														{formatCat}
 													</Link>
 												</li>
 											)
@@ -195,15 +267,34 @@ class Article extends React.Component {
 									{this.state.updated}
 								</div>
 							</div>
+							
+							<div className={ArticleStyles.ImageBar}>
+								{images.length > 0 ? (
+									<ImageGallery
+										items={images}
+										showPlayButton={false}
+										showFullscreenButton={images.length > 0 ? true : false}
+										ref={i => this._imageGallery = i}
+										onScreenChange={this.onScreenChange.bind(this)}
+									/>
+								) : (
+									<div></div>
+								)}
+							</div>
 						
-							<div className={ArticleStyles.Body}>
-								<Editor 
-									editorState={this.state.article} 
-									plugins={plugins} 
-									onChange={this.onChange} 
-									blockStyleFn={mediaBlockStyleFn}
-									readOnly 
-								/>
+							<div className={ArticleStyles.Body} onClick={this._focus.bind(this)}>
+								{finished ? (
+								
+									<Editor 
+										editorState={article}
+										plugins={plugins} 
+										onChange={this.onChange} 
+										blockStyleFn={mediaBlockStyleFn}
+										ref={(element) => { this.editor = element; }}
+										readOnly
+									/>
+								) : ( <div></div>
+								)}
 								
 							</div>
 						</div>

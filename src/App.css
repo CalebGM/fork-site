@@ -29,18 +29,23 @@
 }
 
 .Sidebar {
-	width: 20%;
-	max-width: 220px;
-	overflow: auto;
-	height: 100vh;
+	display: flex;
+	flex-wrap: wrap;
+	width: 100%;
 	background-color: #eee;
 	text-align: center;
-	margin-top: 300px
 }
 
 .Main {
+	display: flex;
+	flex-wrap: wrap;
 	flex: 1;
 	max-width: 100%;
+}
+
+.Body {
+	margin-left: auto;
+	margin-right: auto;
 }
 
 .Tabs {
@@ -58,6 +63,7 @@
 .Link {
 	text-decoration: none;
 	color: black;
+	width: 100%
 }
 
 .burger {
@@ -71,18 +77,22 @@
 @media screen and (max-width: 550px) {
 
 	.Sidebar {
-		 width: 300px;
+		 width: 250px;
 		 height: 100%;
 		 position: absolute;
+		 text-align: center;
 		 box-sizing: border-box;
 		 -webkit-transform: translate(-300px, 0);
 		 transform: translate(-300px, 0);
 		 transition: transform 0.3s ease;
 		 background-color: white;
+		 order: -1;
 		 margin: 0;
 	 }
 	 .SidebarOpen {
-		 width: 300px;
+		 display: flex;
+		 flex-wrap: wrap;
+		 width: 250px;
 		 height: 100%;
 		 position: absolute;
 		 text-align: center;
@@ -91,11 +101,17 @@
 		 background-color: white;
 		 -webkit-transform: translate(0, 0);
 		 transform: translate(0, 0);
+		 order: -1;
 		 z-index: 10;
 	 }
 	 .burger {
-		 float: right;
+		 border: none;
+		 position: absolute;
+		 background-color: transparent;
+		 outline: none;
 		 display: inline;
+		 padding: 0.5em;
+		 font-size: 16px;
 	 }
 }
 

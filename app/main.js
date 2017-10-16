@@ -25,7 +25,7 @@ var connection = mysql.createConnection({
 
 
 
-const categories = ['Art', 'Comics', 'Fake_News', 'Life', 'Movies', 'Music', 'Sports', 'Video_Games'];
+const categories = config.categories;
 const table = config.database.articles;
 const table2 = config.database.users;
 
@@ -118,12 +118,39 @@ app.post('/getCategoryPage', function(req, res) {
 	
 });
 
+
+app.post('/getImgBarMedia', function(req, res) {
+	var article = req.body.article;
+	var bucket = config.s3.articleBucket;
+	var prefix = article + '/media';
+	
+	s3.listObjects({Bucket: bucket, Prefix: prefix}, function(err, data) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log(data.Contents);
+			var content = data.Contents;
+			var images = [];
+				
+			for (var i = 0; i < content.length; i++) {
+				let nextImg = { original: config.s3.baseUrl + content[i].Key };
+				images.push(nextImg);
+				console.log(images);
+			}
+			
+			console.log(images);
+			res.status(200).send({ images: images });
+		}
+	});
+});
+
 app.post('/getArticle', function(req, res) {
-	var key = req.body.key;
+	var title = req.body.key;
+	var key = title + '/article';
 	var bucket = config.s3.articleBucket;
 	
 	var sql = "SELECT * FROM ?? WHERE Title = ?";
-	sql = mysql.format(sql, [table, key]);
+	sql = mysql.format(sql, [table, title]);
 	
 	connection.query(sql, function (error, results, fields) {
 		if (error) {
@@ -180,16 +207,28 @@ app.get('/adminLogout', function(req, res) {
 
 app.post('/admin/publish/uploadImage', function(req, res) {
 	var oldUrl = req.body.url;
-	var bucket = config.s3.mediaBucket;
-	var albumPhotosKey = encodeURIComponent("media") + '/';
+	var bucket = config.s3.articleBucket;
+	var title = req.body.title;
+	var logo = req.body.logo;
+	var imgBar = req.body.imgBar;
+	var draft = req.body.draft;
+	var photoKey;
 	
+		
 	var fileSplit = oldUrl.split('/');
 	var fileName = fileSplit[fileSplit.length - 1];
 	if(!fileName) {
 		fileName = fileSplit[fileSplit.length - 2];
 	};
 	
-	var photoKey = albumPhotosKey + fileName;
+	if (logo) {
+		photoKey = title + '/' + 'logo';
+	} else if (imgBar) {
+		photoKey = title + '/media/' + fileName;
+	} else if(draft) {
+		photoKey = title + '/artmedia/' + fileName;
+	}
+
 	request.get(oldUrl, function(err, res2, body) {
 		if (err) {
 			console.log(err);
@@ -209,7 +248,7 @@ app.post('/admin/publish/uploadImage', function(req, res) {
 				} else {
 					var newFileSplit = data.Location.split('/');
 					var newFileName = newFileSplit[newFileSplit.length - 1];
-					var newUrl = config.s3.imgUrl + newFileName;
+					var newUrl = config.s3.baseUrl + title + '/artmedia/' + newFileName;
 					res.status(200).send({ url: newUrl });
 				}
 			});
@@ -220,14 +259,28 @@ app.post('/admin/publish/uploadImage', function(req, res) {
 
 
 app.post('/admin/publish/uploadLocalImage', function(req, res) {
+
 	var files = req.files;
+	console.log(files);
 	var file = files.file;
-	var bucket = config.s3.mediaBucket;
-	var albumPhotosKey = encodeURIComponent("media") + '/';
-	
+	var title = files.title.name;
+	var logo = files.logo;
+	var imgBar = files.imgBar;
+	var draft = files.draft;
+	var bucket = config.s3.articleBucket;
+	var photoKey;
+		
 	var fileName = file.name;
 	
-	var photoKey = albumPhotosKey + fileName;
+	if (logo) {
+		photoKey = title + '/' + 'logo';
+	} else if (imgBar) {
+		photoKey = title + '/media/' + fileName;
+	} else if(draft) {
+		photoKey = title + '/artmedia/' + fileName;
+	}
+	
+	
 	let params = {
 		Bucket: bucket,
 		Key: photoKey,
@@ -243,7 +296,7 @@ app.post('/admin/publish/uploadLocalImage', function(req, res) {
 		} else {
 			var newFileSplit = data.Location.split('/');
 			var newFileName = newFileSplit[newFileSplit.length - 1];
-			var newUrl = config.s3.imgUrl + newFileName;
+			var newUrl = config.s3.baseUrl + title + '/artmedia/' + newFileName;
 			res.status(200).send({ url: newUrl });
 		}
 	});
@@ -254,7 +307,8 @@ app.post('/admin/publish/uploadLocalImage', function(req, res) {
 app.post('/admin/publish/postArticle', function(req, res) {
 	
 	var cats = req.body.categories;
-	var key = req.body.title;
+	var title = req.body.title;
+	var key = title + '/article';
 	var author = req.body.author;
 	var date = new Date();
 	var isCat = new Array();
@@ -269,7 +323,7 @@ app.post('/admin/publish/postArticle', function(req, res) {
 			
 	var sql = "INSERT INTO ?? (Title, Author, Art, Comics, Fake_News, Life, Movies, Music, Sports, Video_Games," +
 				 " Created, Last_Updated) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-	var inserts = [table, key, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], isCat[5],
+	var inserts = [table, title, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], isCat[5],
 					isCat[6], isCat[7], date, date];
 	sql = mysql.format(sql, inserts);
 	
@@ -298,7 +352,7 @@ app.post('/admin/publish/postArticle', function(req, res) {
 
 
 var uploadArticle = function (req, res, next) {
-	var key = req.body.title;
+	var key = req.body.title + '/article';
 	var article = req.body.article;
 	var art = JSON.stringify(article);
 	var bucket = config.s3.articleBucket;

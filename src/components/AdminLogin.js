@@ -62,7 +62,7 @@ class AdminLogin extends React.Component {
 	
 		
 		if(login && redirectUrl) {
-			return <Redirect to={redirectUrl} />;
+			return <Redirect to={`realHome/admin/publish`} />;
 		}
 			
 		return (

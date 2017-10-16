@@ -1,45 +1,91 @@
 .Article{
-	padding: 5px;
+	width: 100%;
+	max-width: 610px;
+	border-top: thin solid orange;
+	border-bottom: thin solid lightblue;
+	margin-top: 10px;
+	margin-right: 5px;
+	padding-top: 5px;
+	height: 140px;
+	display: flex;
+}
+
+.Article:before {
+}
+
+.ImgContainer{
+	width: 33.3%;
+	margin-left: 15px;
+	height: 95%;
+}
+
+.ImgContainer > img {
+	height: 100%;
+}
+
+.InfoContainer{
+	width: 66.7%;
+	display: flex;
+	flex-wrap: wrap;
 }
 
 
-
-
 .Title{
+	text-transform: uppercase;
 	font-family: arial, sans-serif;
-	font-size: 30px;
-	font-style: italic;
+	font-size: 25px;
 	font-weight: bold;
+	width: 100%;
 }
 
 
 
 .SubInfo{
 	display: flex;
-	flex-wrap: wrap;
+	justify-content: space-between;
+	width: 100%;
 	max-width: 100%;
 	font-size: 15px;
-
+	vertical-align: bottom;
+	align-items: center;
+	padding-right: 10px;
 }
 
 
 .Author{
-	display: flex;
 	padding-right: 15px;
+}
+.Author:before{
+	content: 'By:  ';
 }
 
 .Categories{
-	display: flex;
-	flex-wrap: wrap;
-	padding-right: 15px;
+	width: 100%;
+	font-size: 0.8em;
 }
 
 .CatList{
-	display: flex;
-	flex-wrap: wrap;
+	max-width: 65vw;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	margin: 0;
 	padding: 0;
 }
+
+.CatList:hover, .CatList:active{
+	overflow: visible;
+	white-space: normal;
+}
+
+.Category:after{
+	content: ' -';
+}
+.Category:last-child:after{
+	content: '';
+}
+
+
 
 .Category{
 	display: inline;
@@ -47,7 +93,6 @@
 }
 
 .Created{
-	display: flex;
 }
 	
 
@@ -62,6 +107,11 @@
 	color: blue;
 }
 
+.AuthorLink{
+	text-decoration: none;
+	color: steelblue;
+}
+
 
 @media screen and (max-width: 550px) {
 	Body {
@@ -72,5 +122,14 @@
 	}
 	.SubInfo {
 		font-size: 0.9em;
+	}
+}
+
+@media screen and (max-width: 475px) {
+	.Title {
+		font-size: 1.2em;
+	}
+	.SubInfo {
+		font-size: 0.8em;
 	}
 }
