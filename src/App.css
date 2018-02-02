@@ -7,9 +7,13 @@
   height: 80px;
 }
 
+.logos {
+	max-height: 450px;
+	max-width: 100%;
+}
+
 .banner {
-  background-color: #222;
-  height: 150px;
+  background-color: black;
   padding: 20px;
   color: white;
   text-align: center;
@@ -41,9 +45,12 @@
 	flex-wrap: wrap;
 	flex: 1;
 	max-width: 100%;
+	padding-bottom: 200px;
 }
 
 .Body {
+	width: 100%;
+	max-width: 750px;
 	margin-left: auto;
 	margin-right: auto;
 }
@@ -74,7 +81,8 @@
 	display: flex;
 }
 
-@media screen and (max-width: 550px) {
+
+@media screen and (max-width: 700px) {
 
 	.Sidebar {
 		 width: 250px;
@@ -105,13 +113,14 @@
 		 z-index: 10;
 	 }
 	 .burger {
+		 color: white;
 		 border: none;
 		 position: absolute;
 		 background-color: transparent;
 		 outline: none;
 		 display: inline;
 		 padding: 0.5em;
-		 font-size: 16px;
+		 font-size: 18px;
 	 }
 }
 

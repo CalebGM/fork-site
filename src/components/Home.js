@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import QuickArticleDisplay from './QuickArticleDisplay.js';
+import styles from '../Category.css';
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
@@ -65,21 +66,17 @@ class Home extends React.Component {
 	render() {
 		return (
 		<div>
-			<div>
+			<div className={styles.articleList}>
 				{this.state.articles ? (
 					this.state.articles.map(article => (
-						<div key={article.Title}>
-							<QuickArticleDisplay  article={article} />
-						</div>
+						<QuickArticleDisplay key={article.Title} article={article} />
 					))
 				) : (
 					<div></div>
 				)}
-				
-				<h1>Testing Home Page</h1>
 			</div>
 			<div>
-				<Link to={`/page=${this.state.nextPage}`}>
+				<Link className={styles.link} to={`/realHome/page=${this.state.nextPage}`}>
 					Next Page
 				</Link>
 			</div>
@@ -88,6 +85,4 @@ class Home extends React.Component {
 	}
 
 }
-
-
 export default Home;

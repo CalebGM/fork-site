@@ -6,7 +6,8 @@ import { connect } from 'react-redux';
 import { setRedirectUrl } from '../actions';
 
 import Editor from 'draft-js-plugins-editor';
-import {EditorState, RichUtils, convertToRaw} from 'draft-js';
+import {DefaultDraftBlockRenderMap, EditorState, ContentState, RichUtils, Modifier, convertToRaw} from 'draft-js';
+import Immutable from 'immutable';
 
 import createVideoPlugin from 'draft-js-video-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
@@ -53,18 +54,26 @@ const focusPlugin = createFocusPlugin();
 const imagePlugin = createImagePlugin({ theme: imageStyles });
 const videoPlugin = createVideoPlugin({theme: videoStyles})
 
-function mediaBlockStyleFn(contentBlock) {
-	const type = contentBlock.getType();
-	if (type === 'atomic') {
-		return editorStyles.videoAndImages;
-	}
+const DraftImgContainer = (props) => {
+	return (
+		<figure className={editorStyles.videoAndImagesContainer}>
+			<div className={editorStyles.videoAndImages}>{props.children}</div>
+		</figure>
+	)
 }
+
+const blockRenderMap = Immutable.Map({
+	'atomic': {
+		element: DraftImgContainer
+	}
+});
+
+const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
 
 const plugins = [focusPlugin, videoPlugin, toolbarPlugin, linkifyPlugin, imagePlugin, linkPlugin];
-
-const categories = ['Art', 'Comics', 'Fake_News', 'Life', 'Movies', 'Music', 'Sports', 'Video_Games'];
-
+const categories = config.categories;
+const tabCharacter = "	";
 
 class Publish extends React.Component {
 	constructor(props) {
@@ -90,6 +99,8 @@ class Publish extends React.Component {
 		this.handleAuthorChange = this.handleAuthorChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 		this.handleKeyCommand = this.handleKeyCommand.bind(this);
+		this.handlePastedText = this.handlePastedText.bind(this);
+		this.onTab = this.onTab.bind(this);
 	}
 	
 	
@@ -108,6 +119,32 @@ class Publish extends React.Component {
 			return 'handled';
 		}
 		return 'not-handled';
+	}
+	
+	
+	onTab(e) {
+		e.preventDefault();
+
+		let currentState = this.state.editorStateBody;
+		let newContentState = Modifier.replaceText(
+		  currentState.getCurrentContent(),
+		  currentState.getSelection(),
+		  tabCharacter
+		);
+
+		this.setState({editorStateBody: EditorState.push(currentState, newContentState, 'insert-characters')});
+	}
+	
+	handlePastedText(text) {
+		const { editorStateBody } = this.state;
+		const pastedBlocks = ContentState.createFromText(text).blockMap;
+		const newState = Modifier.replaceWithFragment(
+			editorStateBody.getCurrentContent(),
+			editorStateBody.getSelection(),
+			pastedBlocks
+		);
+		this.onChangeBody(EditorState.push(editorStateBody, newState, 'insert-fragment'));
+		return 'handled';
 	}
 	
 	handleChange(event) {
@@ -167,12 +204,16 @@ class Publish extends React.Component {
 				promises.push(request);
 			}
 			
-			var logoImgRequest = this.uploadLogoImage();
-			promises.push(logoImgRequest);
+			if (this.state.logoImg) {
+				var logoImgRequest = this.uploadLogoImage();
+				promises.push(logoImgRequest);
+			}
 			
 			if (this.state.images.length > 0) {
-				var imgBarRequest = this.uploadImgBar();
-				promises.push(imgBarRequest);
+				for (var i = 0; i < this.state.images.length; i++) {
+					let imgBarRequest = this.uploadImgBar(this.state.images[i]);
+					promises.push(imgBarRequest);
+				}
 			}
 			
 			
@@ -185,7 +226,8 @@ class Publish extends React.Component {
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ categories: cats, title: title, author: author, article: articleRaw })
+					body: JSON.stringify({ categories: cats, title: title, author: author, article: articleRaw }),
+					credentials: 'include'
 				})
 					.then((response) => {
 						this.setState({ finishPublish: true });
@@ -238,36 +280,19 @@ class Publish extends React.Component {
 		}
 	}
 	
-	uploadImgBar() {
-		const { images, title } = this.state;
+	uploadImgBar(image) {
+		const { title } = this.state;
 		var junkBlob = new Blob(['sup'], {type: 'text/plain'});
-		for (var i = 0; i < images.length; i++) {
-			if (images[i].file) {
-				let localFile = new FormData();
-				localFile.append('file', images[i].file);
-				localFile.append('title', junkBlob, title);
-				localFile.append('imgBar', junkBlob);
-				
-				return fetch(config.url + "/admin/publish/uploadLocalImage",
-					{
-						method: 'post',
-						body: localFile,
-						credentials: 'include'
-					})
-						.then((response) => response.json())
-						.then((rs) => {
-						})
-						.catch((error) => {
-							console.log(error);
-						});
-			} else {
-				return fetch(config.url + "/admin/publish/uploadImage",
+		if (image.file) {
+			let localFile = new FormData();
+			localFile.append('file', image.file);
+			localFile.append('title', junkBlob, title);
+			localFile.append('imgBar', junkBlob);
+			
+			return fetch(config.url + "/admin/publish/uploadLocalImage",
 				{
 					method: 'post',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({ url: images[i].original, title: title, imgBar: true }),
+					body: localFile,
 					credentials: 'include'
 				})
 					.then((response) => response.json())
@@ -276,9 +301,25 @@ class Publish extends React.Component {
 					.catch((error) => {
 						console.log(error);
 					});
-			}
+		} else {
+			return fetch(config.url + "/admin/publish/uploadImage",
+			{
+				method: 'post',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ url: image.original, title: title, imgBar: true }),
+				credentials: 'include'
+			})
+				.then((response) => response.json())
+				.then((rs) => {
+				})
+				.catch((error) => {
+					console.log(error);
+				});
 		}
 	}
+	
 	uploadDraftImage(key, entityObject, articleContent) {
 		let entity = entityObject[key];
 		let oldUrl = entity.data.src;
@@ -405,7 +446,7 @@ class Publish extends React.Component {
 							author={this.state.author}
 							images={this.state.images}
 						/>
-						<div>
+						<div style={{textAlign: 'left'}}>
 							<button onClick={this._onEditClick.bind(this)}>Back To Edits</button>
 						</div>
 					</div>
@@ -480,7 +521,9 @@ class Publish extends React.Component {
 							<Editor 
 								editorState = {this.state.editorStateBody} 
 								handleKeyCommand={this.handleKeyCommand}
-								blockStyleFn={mediaBlockStyleFn}
+								handlePastedText={this.handlePastedText}
+								onTab={this.onTab}
+								blockRenderMap={extendedBlockRenderMap}
 								onChange={this.onChangeBody} 
 								plugins={plugins}
 								textAlign='left'

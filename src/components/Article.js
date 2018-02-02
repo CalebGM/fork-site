@@ -2,6 +2,8 @@
 
 import React from 'react';
 import Editor from 'draft-js-plugins-editor';
+import DocumentTitle from 'react-document-title';
+import Immutable from 'immutable';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import EditArticle from './EditArticle.js';
@@ -10,11 +12,12 @@ import ImageGallery from 'react-image-gallery';
 import createVideoPlugin from 'draft-js-video-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
-import { EditorState, convertFromRaw } from 'draft-js';
+import { DefaultDraftBlockRenderMap, EditorState, convertFromRaw } from 'draft-js';
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import '!style-loader!css-loader!draft-js-linkify-plugin/lib/plugin.css';
 import createLinkPlugin from 'draft-js-link-plugin';
 import '!style-loader!css-loader!draft-js-link-plugin/lib/plugin.css';
+import '!style-loader!css-loader!draft-js/dist/Draft.css';
 
 import editorStyles from '../Editor.css';
 import videoStyles from '../Video.css';
@@ -46,12 +49,23 @@ const focusPlugin = createFocusPlugin();
 const videoPlugin = createVideoPlugin({theme: videoStyles});
 
 
-function mediaBlockStyleFn(contentBlock) {
-	const type = contentBlock.getType();
-	if (type === 'atomic') {
-		return editorStyles.videoAndImages;
-	}
+const DraftImgContainer = (props) => {
+	return (
+		<figure className={editorStyles.videoAndImagesContainer}>
+			<div className={editorStyles.videoAndImages}>{props.children}</div>
+		</figure>
+	)
 }
+
+const blockRenderMap = Immutable.Map({
+	'atomic': {
+		element: DraftImgContainer
+	}
+});
+
+const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
+
+
 
 
 const plugins = [focusPlugin, videoPlugin, linkifyPlugin, imagePlugin, linkPlugin];
@@ -134,7 +148,6 @@ class Article extends React.Component {
 		})
 			.then((response) => response.json())
 			.then((rs) => {
-				console.log(rs.images);
 				this.setState({ images: rs.images });
 			})
 			.catch((error) => {
@@ -152,12 +165,19 @@ class Article extends React.Component {
 	}
 	
 	
-	toLower(cat) {
-		var split = cat.split("_");
-		var formatCat = split[0].charAt(0).toLowerCase() + split[0].slice(1);
+	toLink(cat) {
+		var formatCat = cat;
+
+		var slashSplit = cat.split("/");
+		if (slashSplit[1]) {
+			formatCat = slashSplit[0] + "_" + slashSplit[1];
+		}
 		
+		
+		var split = formatCat.split("_");
+		formatCat = split[0].charAt(0).toLowerCase() + split[0].slice(1);
 		if (split[1]) {
-			return formatCat + "_" + (split[1].charAt(0).toLowerCase() + split[1].slice(1));
+			formatCat = formatCat + "_" + (split[1].charAt(0).toLowerCase() + split[1].slice(1));
 		}
 		
 		return formatCat;
@@ -166,6 +186,12 @@ class Article extends React.Component {
 	withoutUnderscore(cat) {
 		var split = cat.split("_");
 		var formatCat = split[0].charAt(0) + split[0].slice(1);
+		
+		if (split[0] === 'Art') {
+			return 'Art/Photography';
+		} else if (split[0] === 'Fashion') {
+			return 'Fashion/Kicks';
+		}
 		
 		if (split[1]) {
 			return formatCat + " " + (split[1].charAt(0) + split[1].slice(1));
@@ -207,9 +233,9 @@ class Article extends React.Component {
 		
 		
 		return (
+			<DocumentTitle title={title + ' - Awesome Totally Awesome'}>
 			<div>
 				{editMode ? (
-					<div>
 						<EditArticle
 							article={article}
 							title={title}
@@ -221,7 +247,6 @@ class Article extends React.Component {
 							onPublish={this.onPublish}
 							
 						/>
-					</div>
 				) : (
 					<div>
 						{login ? (
@@ -237,20 +262,18 @@ class Article extends React.Component {
 							
 							<div className={ArticleStyles.SubInfo}>
 								<div className={ArticleStyles.Author}>
-									Written by: 
-									<Link to={`/auth/${this.state.author}/page=1`}>
+									<Link className={ArticleStyles.Link} to={`/realHome/auth/${this.state.author}/page=1`}>
 										{this.state.author}
 									</Link>
 								</div>
 								<div className={ArticleStyles.Categories}>
-									Categories: 
 									<ul className={ArticleStyles.CatList}>
 										{this.state.categories.map(cat => {
-											let lowerCat = this.toLower(cat);
+											let linkCat = this.toLink(cat);
 											let formatCat = this.withoutUnderscore(cat)
 											return (
 												<li className={ArticleStyles.Category} key={cat}>
-													<Link className={ArticleStyles.Link} to={`/cat/${lowerCat}/page=1`} >
+													<Link className={ArticleStyles.Link} to={`/realHome/cat/${linkCat}/page=1`} >
 														{formatCat}
 													</Link>
 												</li>
@@ -259,24 +282,26 @@ class Article extends React.Component {
 									</ul>
 								</div>
 								<div className={ArticleStyles.Created}>
-									Posted:
 									{this.state.created}
 								</div>
 								<div className={ArticleStyles.Updated}>
-									Last Updated:
 									{this.state.updated}
 								</div>
 							</div>
 							
-							<div className={ArticleStyles.ImageBar}>
+							<div className={ArticleStyles.ImageBarContainer}>
 								{images.length > 0 ? (
-									<ImageGallery
-										items={images}
-										showPlayButton={false}
-										showFullscreenButton={images.length > 0 ? true : false}
-										ref={i => this._imageGallery = i}
-										onScreenChange={this.onScreenChange.bind(this)}
-									/>
+									<div className={ArticleStyles.ImageBar}>
+										<ImageGallery
+											items={images}
+											showPlayButton={false}
+											showBullets={images.length > 1 ? true : false}
+											showThumbnails={false}
+											showFullscreenButton={images.length > 0 ? true : false}
+											ref={i => this._imageGallery = i}
+											onScreenChange={this.onScreenChange.bind(this)}
+										/>
+									</div>
 								) : (
 									<div></div>
 								)}
@@ -288,8 +313,8 @@ class Article extends React.Component {
 									<Editor 
 										editorState={article}
 										plugins={plugins} 
-										onChange={this.onChange} 
-										blockStyleFn={mediaBlockStyleFn}
+										onChange={this.onChange}
+										blockRenderMap={extendedBlockRenderMap}
 										ref={(element) => { this.editor = element; }}
 										readOnly
 									/>
@@ -300,7 +325,8 @@ class Article extends React.Component {
 						</div>
 					</div>
 				)}
-			</div>		
+			</div>
+			</DocumentTitle>
 		)
 	}
 }

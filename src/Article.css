@@ -1,40 +1,59 @@
 .Article{
+	text-align: left;
 	margin-top: 15px;
 	margin-left: 5px;
+	margin-bottom: 30px;
 }
 
 
 .Body{
+	font-family: Lato, sans-serif;
 	padding: 16px;
 	max-width: 900px;
+	line-height: 200%;
 	overflow: auto;
 }
 
 
 .Title{
-	font-family: arial, sans-serif;
-	font-size: 30px;
-	font-style: italic;
-	font-weight: bold;
+	text-transform: capitalize;
+	font-family: Oswald, sans-serif;
+	font-size: 35px;
 }
 
 
 
 .SubInfo{
 	display: flex;
-	
 	font-size: 13px;
-
+	margin-bottom: 20px;
+	color: dimgrey;
 }
 
+.ImageBarContainer{
+	display: flex;
+	justify-content: center;
+	border-top: thin solid black;
+	border-bottom: thin solid black;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	text-align: center;
+	width: 100%;
+}
+
+.ImageBar {
+	width: 80%;
+}
 
 .Author{
-	display: flex;
 	padding-right: 15px;
 }
 
+.Author:before{
+	content: 'By: ';
+}
+
 .Categories{
-	display: flex;
 	padding-right: 15px;
 }
 
@@ -43,18 +62,76 @@
 	padding: 0;
 }
 
+.CatList:before{
+	content: 'In: ';
+}
+
 .Category{
 	display: inline;
-	padding: 3px;
+}
+
+.Category:after{
+	content: ' - ';
+}
+.Category:last-child:after{
+	content: '';
 }
 
 
 .Link{
 	text-decoration: none;
-	color: blue;
+	color: #5763bd;
 }
 
 
 .Created{
 	padding-right: 15px;
 }
+
+.Created:before{
+	content: 'Created: ';
+}
+
+.Updated:before{
+	content: 'Last Updated: ';
+}
+
+
+@media screen and (max-width: 700px) {
+	.Article {
+		margin-left: 0;
+	}
+	.Author {
+		padding: 0;
+	}
+	.Title {
+		text-align: center;
+		padding: 3px;
+	}
+	.Categories {
+		padding: 0;
+	}
+	.CatList:before {
+		content: '';
+	}
+	.SubInfo {
+		display: block;
+		line-height: 150%;
+		text-align: center;
+	}
+	.Created {
+		padding: 0;
+	}
+	Body {
+		width: 100%;
+	}
+}
+
+@media screen and (max-width: 425px) {
+	.Body {
+		padding: 10px;
+		font-size: 13px;
+	}
+}
+
+

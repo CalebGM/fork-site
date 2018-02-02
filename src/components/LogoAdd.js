@@ -60,7 +60,6 @@ class LogoAdd extends React.Component {
 	}
 	
 	addLocalImage(localImage) {
-		const { logo } = this.state;
 		const {onChange} = this.props;
 		var newLogo = { original: this.state.url, file: localImage };
 		onChange(newLogo);
@@ -69,7 +68,6 @@ class LogoAdd extends React.Component {
 	
 	
 	addOnlineMedia () {
-		const { logo } = this.state;
 		const {onChange} = this.props;
 		var newLogo = { original: this.state.url };
 		onChange(newLogo);
@@ -99,10 +97,16 @@ class LogoAdd extends React.Component {
 	
 	cropLogo() {
 		const {onChange} = this.props;
-		var cropBlob = this.dataURLtoBlob(this.cropper.crop());
-		var newLogo = { original: this.cropper.crop(), file: cropBlob };
-		onChange(newLogo);
-		this.setState({ logo: newLogo, crop: false });
+		
+		if (this.cropper.state.imgHeight === "auto") {
+			alert('Image cannot be cropped. Download locally and upload from your computer');
+			this.setState({ crop: false });
+		} else {
+			var cropBlob = this.dataURLtoBlob(this.cropper.crop());
+			var newLogo = { original: this.cropper.crop(), file: cropBlob };
+			onChange(newLogo);
+			this.setState({ logo: newLogo, crop: false });
+		}
 	}
 	
 	
@@ -123,9 +127,9 @@ class LogoAdd extends React.Component {
 						src={logo.original}
 						ref={i => this.cropper = i}
 					/>
-					<div>
-						<button type="button" onClick={this.cropLogo}>Make Crop</button>
-						<button type="button" onClick={this.cancelCrop}>Cancel Crop</button>
+					<div style={{padding: '5px'}}>
+						<button style={{marginRight: '5px'}} type="button" onClick={this.cropLogo}>Make Crop</button>
+						<button style={{color: 'red'}} type="button" onClick={this.cancelCrop}>Cancel Crop</button>
 					</div>
 				</div>
 			)
@@ -133,7 +137,7 @@ class LogoAdd extends React.Component {
 			logoDiv = (
 				<div style={{display: 'inline-block'}}>
 					<div className={styles.ShowLogo}>
-						<img src={logo.original} />
+						<img src={logo.original} alt="Empty Logo"/>
 					</div>
 					<div>
 						<button type="button" onClick={this.startCrop}>Crop Logo</button>

@@ -30,11 +30,34 @@ class QuickArticleDisplay extends React.Component {
 		
 	}
 	
+	toLink(cat) {
+		var formatCat = cat;
+
+		var slashSplit = cat.split("/");
+		if (slashSplit[1]) {
+			formatCat = slashSplit[0] + "_" + slashSplit[1];
+		}
+		
+		
+		var split = formatCat.split("_");
+		formatCat = split[0].charAt(0).toLowerCase() + split[0].slice(1);
+		if (split[1]) {
+			formatCat = formatCat + "_" + (split[1].charAt(0).toLowerCase() + split[1].slice(1));
+		}
+		
+		return formatCat;
+	}
 	
 	withoutUnderscore(cat) {
 		var split = cat.split("_");
 		var formatCat = split[0].charAt(0) + split[0].slice(1);
 		
+		
+		if (split[0] === 'Art') {
+			return 'Art/Photography';
+		} else if (split[0] === 'Fashion') {
+			return 'Fashion/Kicks';
+		}
 		if (split[1]) {
 			return formatCat + " " + (split[1].charAt(0) + split[1].slice(1));
 		}
@@ -47,16 +70,19 @@ class QuickArticleDisplay extends React.Component {
 		return (
 			<div className={quickDisplay.Article}>
 				<div className={quickDisplay.ImgContainer}>
-					<img src={this.state.logoUrl} alt='Article Too Awesome For Logo'/>
+					<Link to={`/realHome/story/${this.props.article.Title}`}>
+						<img src={this.state.logoUrl} alt='Article Too Awesome For Logo'/>
+					</Link>
 				</div>
 				<div className={quickDisplay.InfoContainer}>
 					<div className={quickDisplay.Categories}>
 						<ul className={quickDisplay.CatList}>
 							{this.state.categories.map(cat => {
+								let linkCat = this.toLink(cat);
 								let formatCat = this.withoutUnderscore(cat);
 								return (
 									<li className={quickDisplay.Category} key={cat}>
-										<Link className={quickDisplay.CatLink} to={`/cat/${cat}/page=1`} >
+										<Link className={quickDisplay.CatLink} to={`/realHome/cat/${linkCat}/page=1`} >
 											{formatCat}
 										</Link>
 									</li>
@@ -65,13 +91,13 @@ class QuickArticleDisplay extends React.Component {
 						</ul>
 					</div>
 					<div className={quickDisplay.Title}>
-						<Link className={quickDisplay.TitleLink} to={`/story/${this.props.article.Title}`}>
+						<Link className={quickDisplay.TitleLink} to={`/realHome/story/${this.props.article.Title}`}>
 							{this.props.article.Title}
 						</Link>
 					</div>
 					<div className={quickDisplay.SubInfo}>
 						<div className={quickDisplay.Author}> 
-							<Link className={quickDisplay.AuthorLink} to={`/auth/${this.props.article.Author}/page=1`}>
+							<Link className={quickDisplay.AuthorLink} to={`/realHome/auth/${this.props.article.Author}/page=1`}>
 								{this.props.article.Author}
 							</Link>
 						</div>

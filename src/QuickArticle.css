@@ -1,25 +1,35 @@
 .Article{
 	width: 100%;
 	max-width: 610px;
-	border-top: thin solid orange;
-	border-bottom: thin solid lightblue;
-	margin-top: 10px;
-	margin-right: 5px;
-	padding-top: 5px;
+	margin-left: auto;
+	margin-right: auto;
+	padding-top: 20px;
+	padding-bottom: 20px;
 	height: 140px;
 	display: flex;
 }
 
-.Article:before {
+
+
+.Article:nth-of-type(odd) {
+	border-top: thin solid lightgrey;
+	border-bottom: thin solid lightgrey;
+}
+
+.Article:nth-of-type(even) {
+	border-top: thin solid lightgrey;
+	border-bottom: thin solid lightgrey;
 }
 
 .ImgContainer{
+	min-width: 33.3%;
 	width: 33.3%;
 	margin-left: 15px;
 	height: 95%;
+	
 }
 
-.ImgContainer > img {
+.ImgContainer > a > img {
 	height: 100%;
 }
 
@@ -27,14 +37,19 @@
 	width: 66.7%;
 	display: flex;
 	flex-wrap: wrap;
+	margin-left: 4px;
+	position: relative;
+	align-content: flex-start;
 }
 
 
 .Title{
-	text-transform: uppercase;
-	font-family: arial, sans-serif;
+	text-transform: capitalize;
+	font-family: Oswald, sans-serif;
 	font-size: 25px;
-	font-weight: bold;
+	overflow: hidden;
+	padding: 0;
+	margin: 0;
 	width: 100%;
 }
 
@@ -43,17 +58,15 @@
 .SubInfo{
 	display: flex;
 	justify-content: space-between;
-	width: 100%;
-	max-width: 100%;
-	font-size: 15px;
-	vertical-align: bottom;
+	width: 98%;
+	font-size: 0.8em;
 	align-items: center;
-	padding-right: 10px;
+	position: absolute;
+	bottom: 0;
 }
 
 
 .Author{
-	padding-right: 15px;
 }
 .Author:before{
 	content: 'By:  ';
@@ -61,25 +74,22 @@
 
 .Categories{
 	width: 100%;
+	height: 32px;
 	font-size: 0.8em;
 }
 
 .CatList{
-	max-width: 65vw;
-	white-space: nowrap;
-	overflow: hidden;
+	width: 100%;
+	height: 32.5px;
+	overflow: auto;
 	text-overflow: ellipsis;
 	margin: 0;
 	padding: 0;
 }
 
-.CatList:hover, .CatList:active{
-	overflow: visible;
-	white-space: normal;
-}
 
 .Category:after{
-	content: ' -';
+	content: ' - ';
 }
 .Category:last-child:after{
 	content: '';
@@ -89,7 +99,6 @@
 
 .Category{
 	display: inline;
-	padding: 3px;
 }
 
 .Created{
@@ -113,23 +122,18 @@
 }
 
 
-@media screen and (max-width: 550px) {
-	Body {
-		font-size: 16px;
-	}
-	.Title {
-		font-size: 1.5em;
-	}
-	.SubInfo {
-		font-size: 0.9em;
-	}
-}
-
 @media screen and (max-width: 475px) {
 	.Title {
 		font-size: 1.2em;
+		max-height: 56px;
 	}
 	.SubInfo {
-		font-size: 0.8em;
+		font-size: 0.7em;
+	}
+	.Article {
+		height: 106px;
+	}
+	.Author {
+		padding-right: 2px;
 	}
 }

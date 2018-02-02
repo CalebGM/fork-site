@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import QuickArticleDisplay from './QuickArticleDisplay.js';
+import CategoryStyles from '../Category.css';
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
@@ -57,10 +58,7 @@ class Author extends React.Component {
 	render() {
 		return (
 		<div>
-			<div>
-				<div>
-					Articles written by {this.state.author} - 
-				</div>
+			<div className={CategoryStyles.articleList}>
 				{this.state.articles ? (
 					this.state.articles.map(article => (
 						<div key={article.Title}>
@@ -70,11 +68,9 @@ class Author extends React.Component {
 				) : (
 					<div></div>
 				)}
-				
-				<h1>Testing {this.state.author} Page</h1>
 			</div>
 			<div>
-				<Link to={`/auth/${this.state.author}/page=${this.state.nextPage}`}>
+				<Link className={CategoryStyles.link} to={`/realHome/auth/${this.state.author}/page=${this.state.nextPage}`}>
 					Next Page
 				</Link>
 			</div>

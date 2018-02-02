@@ -1,5 +1,6 @@
 import React from 'react'
 import { Link } from 'react-router-dom';
+import DocumentTitle from 'react-document-title';
 import QuickArticleDisplay from './QuickArticleDisplay.js';
 import CategoryStyles from '../Category.css';
 
@@ -36,7 +37,7 @@ class Category extends React.Component {
 	
 	
 	
-	fetchCategoryArticles() {		
+	fetchCategoryArticles() {
 		fetch(config.url + "/getCategoryPage",
 		{
 			method: 'post',
@@ -55,28 +56,45 @@ class Category extends React.Component {
 			});
 	}
 	
+	
+	withoutUnderscore(cat) {
+		var split = cat.split("_");
+		var formatCat = split[0].charAt(0).toUpperCase() + split[0].slice(1);
+		
+		
+		if (split[0] === 'art') {
+			return 'Art/Photography';
+		} else if (split[0] === 'fashion') {
+			return 'Fashion/Kicks';
+		}
+		if (split[1]) {
+			return formatCat + " " + (split[1].charAt(0).toUpperCase() + split[1].slice(1));
+		}
+		
+		return formatCat;
+	}
+	
 	render() {
+		const { cat } = this.state;
+		const formatCat = this.withoutUnderscore(cat);
+		
 		return (
+		<DocumentTitle title={formatCat + ' - Awesome Totally Awesome'}>
 		<div className={CategoryStyles.main}>
 			<div className={CategoryStyles.articleList}>
 				{this.state.articles ? (
 					this.state.articles.map(article => (
-						<div key={article.Title}>
-							<QuickArticleDisplay  article={article} />
-						</div>
+						<QuickArticleDisplay  key={article.Title} article={article} />
 					))
 				) : (
 					<div></div>
 				)}
-				
-				<h1>Testing { this.state.cat } Page</h1>
 			</div>
-			<div className={CategoryStyles.link}>
-				<Link to={`/cat/${this.state.cat}/page=${this.state.nextPage}`}>
-					Next Page
-				</Link>
-			</div>
+			<Link className={CategoryStyles.link} to={`/realHome/cat/${this.state.cat}/page=${this.state.nextPage}`}>
+				Next Page
+			</Link>
 		</div>
+		</DocumentTitle>
 		);
 	}
 	

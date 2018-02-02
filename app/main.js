@@ -1,11 +1,16 @@
 var express = require('express');
 var app = express();
+var helmet = require('helmet');
 var cookieParser = require('cookie-parser');
 var fs = require('fs');
 var request = require('request').defaults({ encoding: null });
 var bodyParser = require('body-parser');
 var AWS = require('aws-sdk');
 var mysql = require('mysql');
+var imagemin = require('imagemin');
+var imageminJpegRecompress = require('imagemin-jpeg-recompress');
+var imageminPngquant = require('imagemin-pngquant');
+
 var fileUpload = require('express-fileupload');
 
 var env = process.env.NODE_ENV || 'development';
@@ -30,6 +35,7 @@ const table = config.database.articles;
 const table2 = config.database.users;
 
 
+app.use(helmet());
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(fileUpload());
@@ -46,11 +52,26 @@ app.get('/', function(req, res) {
 	var cookieName = config.cookie.name;
 	
 	if (req.cookies[cookieName] === config.cookie.value) {
-		res.cookie(config.cookie.name, config.cookie.value, { maxAge: 5400000, httpOnly: true }).send({ isAdmin: true });
+		res.cookie(config.cookie.name, config.cookie.value, { maxAge: 5400000, httpOnly: true, secure: true }).send({ isAdmin: true });
 	} else {
 		res.status(200).send({ isAdmin: false });
 	}
 	
+});
+
+app.get('/getAboutPage', function(req, res) {
+	var bucket = config.s3.articleBucket;
+	var key = 'About/article';
+	
+	s3.getObject(params = { Bucket: bucket, Key: key }, function(err, data) {
+		if (err) {
+			console.log(err);
+			res.sendStatus(500);
+		} else {
+			var content = data.Body.toString();
+			res.status(200).send({ body: content });
+		}
+	});
 });
 
 app.post('/getHomePage', function(req, res) {
@@ -100,7 +121,7 @@ app.post('/getCategoryPage', function(req, res) {
 	console.log(req.cookies);
 	var cat = req.body.category;
 	var page = Number(req.body.page);
-	
+	console.log(cat);
 	var offset = (page - 1)*15;
 	
 	var sql = "SELECT * FROM ?? WHERE ?? = 1 ORDER BY Created DESC LIMIT ?, 15";
@@ -186,7 +207,7 @@ app.post('/checkLogin', function(req, res) {
 			return;
 		} else {
 			if (results[0].isAdmin === 1) {
-				res.cookie(config.cookie.name, config.cookie.value, { maxAge: 5400000, httpOnly: true }).status(200).send({ isAdmin: true });
+				res.cookie(config.cookie.name, config.cookie.value, { maxAge: 5400000, httpOnly: true, secure: true }).status(200).send({ isAdmin: true });
 			} else {
 				res.status(200).send({ isAdmin: false });
 			}
@@ -233,25 +254,34 @@ app.post('/admin/publish/uploadImage', function(req, res) {
 		if (err) {
 			console.log(err);
 		} else {
-			let params = {
+			imagemin.buffer(body, {
+				plugins: [
+					imageminJpegRecompress(),
+					imageminPngquant({quality: '55-80'})
+				]
+			})
+			.then(function (data) {
+				console.log(data);
+				let params = {
 				Bucket: bucket,
 				Key: photoKey,
-				Body: body,
+				Body: data,
 				ContentDisposition: 'inline',
 				ContentType: 'image/jpeg',
 				ACL: 'public-read'
-			};
-			
-			s3.upload(params, function(err, data) {
-				if (err) {
-					console.log(err);
-				} else {
-					var newFileSplit = data.Location.split('/');
-					var newFileName = newFileSplit[newFileSplit.length - 1];
-					var newUrl = config.s3.baseUrl + title + '/artmedia/' + newFileName;
-					res.status(200).send({ url: newUrl });
-				}
-			});
+				};
+					
+				s3.upload(params, function(err, data) {
+					if (err) {
+						console.log(err);
+					} else {
+						var newFileSplit = data.Location.split('/');
+						var newFileName = newFileSplit[newFileSplit.length - 1];
+						var newUrl = config.s3.baseUrl + title + '/artmedia/' + newFileName;
+						res.status(200).send({ url: newUrl });
+					}
+				});
+			})
 		}
 	});
 });
@@ -280,26 +310,37 @@ app.post('/admin/publish/uploadLocalImage', function(req, res) {
 		photoKey = title + '/artmedia/' + fileName;
 	}
 	
-	
-	let params = {
+	imagemin.buffer(file.data, {
+		plugins: [
+			imageminJpegRecompress(),
+			imageminPngquant({quality: '55-80'})
+		]
+	})
+	.then(function (data) {
+		console.log(data);
+		let params = {
 		Bucket: bucket,
 		Key: photoKey,
-		Body: file.data,
+		Body: data,
 		ContentDisposition: 'inline',
 		ContentType: 'image/jpeg',
 		ACL: 'public-read'
-	};
+		};
 			
-	s3.upload(params, function(err, data) {
-		if (err) {
-			console.log(err);
-		} else {
-			var newFileSplit = data.Location.split('/');
-			var newFileName = newFileSplit[newFileSplit.length - 1];
-			var newUrl = config.s3.baseUrl + title + '/artmedia/' + newFileName;
-			res.status(200).send({ url: newUrl });
-		}
-	});
+		s3.upload(params, function(err, data) {
+			if (err) {
+				console.log(err);
+			} else {
+				var newFileSplit = data.Location.split('/');
+				var newFileName = newFileSplit[newFileSplit.length - 1];
+				var newUrl = config.s3.baseUrl + title + '/artmedia/' + newFileName;
+				res.status(200).send({ url: newUrl });
+			}
+		});
+	})
+	
+	
+
 });
 
 
@@ -321,7 +362,7 @@ app.post('/admin/publish/postArticle', function(req, res) {
 	}
 	
 			
-	var sql = "INSERT INTO ?? (Title, Author, Art, Comics, Fake_News, Life, Movies, Music, Sports, Video_Games," +
+	var sql = "INSERT INTO ?? (Title, Author, Features, Fake_News, Art_Photography, Gaming, Fashion_Kicks, Music, Sports, Eats," +
 				 " Created, Last_Updated) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 	var inserts = [table, title, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], isCat[5],
 					isCat[6], isCat[7], date, date];
@@ -347,6 +388,22 @@ app.post('/admin/publish/postArticle', function(req, res) {
 	});
 	
 
+});
+
+app.post('/admin/publish/updateAbout', function(req, res) {
+	var newAbout = req.body.article;
+	var about = JSON.stringify(newAbout);
+	var bucket = config.s3.articleBucket;
+	var key = 'About/article';
+	
+	s3.putObject(params = { Bucket: bucket, Key: key, Body: about}, function(err, data) {
+		if (err) {
+			console.log(err);
+			res.status(500).send(err);
+		} else {
+			res.sendStatus(200);
+		}
+	});
 });
 
 
@@ -383,8 +440,8 @@ var updateSql = function (req, res, next) {
 	}
 	
 			
-	var sql = "UPDATE ?? SET Title = ?, Author = ?, Art = ?, Comics = ?, Fake_News = ?, Life = ?, Movies = ?, Music = ?, " +
-				"Sports = ?, Video_Games = ?, Last_Updated = ? WHERE Title = ?;";
+	var sql = "UPDATE ?? SET Title = ?, Author = ?, Features = ?, Fake_News = ?, Art_Photography = ?, Gaming = ?, " +
+				"Fashion_Kicks = ?, Music = ?, Sports = ?, Eats = ?, Last_Updated = ? WHERE Title = ?;";
 	var inserts = [table, key, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], isCat[5],
 					isCat[6], isCat[7], date, oldKey];
 	sql = mysql.format(sql, inserts);
@@ -403,11 +460,18 @@ var updateSql = function (req, res, next) {
 var deleteArticle = function (req, res, next) {
 	var oldKey = req.body.ogTitle;
 	var key = req.body.title;
+	var bucket = config.s3.articleBucket;
 	
 	if (oldKey === key) {
-		next();
+		s3.deleteObject(params = { Bucket: bucket, Key: key + '/media' }, function(err, data) {
+			if(err) {
+				console.log(err);
+				next();
+			} else {
+				next();
+			}
+		});
 	} else {
-		var bucket = config.s3.articleBucket;
 		s3.deleteObject(params = { Bucket: bucket, Key: oldKey }, function(err, data) {
 			if(err) {
 				console.log(err);

@@ -1,18 +1,32 @@
-.Container {
+.Admin {
 	display: flex;
 	flex-wrap: wrap;
-	justify-content: space-between;
-	width: 100%
+}
+
+.Container {
+	border-top: thin #676767 solid;
+	background-color: black;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-evenly;
+	width: 100%;
+	font-size: 0.9em;
 }
 
 .Links {
+	text-decoration: none;
+	color: white;
 	padding: 0.5em;
 	box-sizing: border-box;
 	display: block;
 }
 
+.Links:hover {
+	color: lightblue;
+}
 
-@media screen and (max-width: 550px) {
+
+@media screen and (max-width: 700px) {
 	.Container:before {
 		content: "Choose your category:";
 		margin-left: 0;
@@ -28,5 +42,6 @@
 	.Links {
 		display: inline-block;
 		width: 100%;
+		padding: 1em;
 	}
 }

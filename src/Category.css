@@ -1,11 +1,19 @@
 .main {
-
 }
 
 .articleList {
-
+	padding-bottom: 40px;
 }
 
 .link {
+	text-decoration: none;
+	font-size: 1.3em;
+}
 
+.link:before {
+	content: '< ';
+}
+
+.link:hover {
+	color: steelblue;
 }

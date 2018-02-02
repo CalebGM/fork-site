@@ -1,6 +1,8 @@
 import React from 'react';
+import { DefaultDraftBlockRenderMap } from 'draft-js';
 import Editor from 'draft-js-plugins-editor';
 import ImageGallery from 'react-image-gallery';
+import Immutable from 'immutable';
 import createVideoPlugin from 'draft-js-video-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
@@ -17,12 +19,21 @@ const videoPlugin = createVideoPlugin({theme: videoStyles});
 
 
 
-function mediaBlockStyleFn(contentBlock) {
-	const type = contentBlock.getType();
-	if (type === 'atomic') {
-		return editorStyles.videoAndImages;
-	}
+const DraftImgContainer = (props) => {
+	return (
+		<figure className={editorStyles.videoAndImagesContainer}>
+			<div className={editorStyles.videoAndImages}>{props.children}</div>
+		</figure>
+	)
 }
+
+const blockRenderMap = Immutable.Map({
+	'atomic': {
+		element: DraftImgContainer
+	}
+});
+
+const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
 const plugins = [imagePlugin, focusPlugin, videoPlugin];
 
@@ -71,13 +82,11 @@ class Preview extends React.Component {
 				
 				<div className={ArticleStyles.SubInfo}>
 					<div className={ArticleStyles.Author}>
-						Written by: 
 						<a className={ArticleStyles.Link}>
 							{this.state.author}
 						</a>
 					</div>
 					<div className={ArticleStyles.Categories}>
-						Categories: 
 						<ul className={ArticleStyles.CatList}>
 							{this.state.categories.map(cat => (
 								<li className={ArticleStyles.Category} key={cat}>
@@ -89,35 +98,37 @@ class Preview extends React.Component {
 						</ul>
 					</div>
 					<div className={ArticleStyles.Created}>
-						Posted:
 						{this.state.created}
 					</div>
 					<div className={ArticleStyles.Updated}>
-						Last Updated:
 						{this.state.updated}
 					</div>
 				</div>
 				
-				<div className={ArticleStyles.ImageBar}>
+				<div className={ArticleStyles.ImageBarContainer}>
 					{images.length > 0 ? (
-						<ImageGallery
-							items={images}
-							showPlayButton={false}
-							showFullscreenButton={images.length > 0 ? true : false}
-							ref={i => this._imageGallery = i}
-							onScreenChange={this.onScreenChange.bind(this)}
-						/>
+						<div className={ArticleStyles.ImageBar}>
+							<ImageGallery
+								items={images}
+								showPlayButton={false}
+								showBullets={images.length > 1 ? true : false}
+								showThumbnails={false}
+								showFullscreenButton={images.length > 0 ? true : false}
+								ref={i => this._imageGallery = i}
+								onScreenChange={this.onScreenChange.bind(this)}
+							/>
+						</div>
 					) : (
 						<div></div>
 					)}
-				</div>				
+				</div>			
 		
 				<div className={ArticleStyles.Body}>
 					<Editor 
 						editorState={this.state.article} 
 						plugins={plugins} 
 						onChange={this.onChange} 
-						blockStyleFn={mediaBlockStyleFn}
+						blockRenderMap={extendedBlockRenderMap}
 						readOnly 
 					/>
 					

@@ -1,5 +1,5 @@
 import React from 'react';
-import Adbar from '../Adbar.css';
+//import Adbar from '../Adbar.css';
 
 class GoogleAd extends React.Component {
 	constructor(props) {
@@ -15,14 +15,8 @@ class GoogleAd extends React.Component {
 		} = this.props;
 		
 		return (
-			<div className={Adbar.GoogleAd}>
-				<ins
-					className=''
-					style=''
-					google_ad_client: "ca-pub-2267602959249768"
-					enable_page_level_ads: true
-				>
-				</ins>
+			<div className="">
+				
 			</div>
 		);
 	}

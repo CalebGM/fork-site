@@ -4,7 +4,8 @@ import React from 'react';
 import { Redirect } from 'react-router';
 
 import Editor from 'draft-js-plugins-editor';
-import {EditorState, RichUtils, convertToRaw} from 'draft-js';
+import {DefaultDraftBlockRenderMap, EditorState, ContentState, RichUtils, Modifier, convertToRaw} from 'draft-js';
+import Immutable from 'immutable';
 
 import createVideoPlugin from 'draft-js-video-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
@@ -51,29 +52,46 @@ const focusPlugin = createFocusPlugin();
 const imagePlugin = createImagePlugin({ theme: imageStyles });
 const videoPlugin = createVideoPlugin({theme: videoStyles})
 
-function mediaBlockStyleFn(contentBlock) {
-	const type = contentBlock.getType();
-	if (type === 'atomic') {
-		return editorStyles.videoAndImages;
-	}
+const DraftImgContainer = (props) => {
+	return (
+		<figure className={editorStyles.videoAndImagesContainer}>
+			<div className={editorStyles.videoAndImages}>{props.children}</div>
+		</figure>
+	)
 }
+
+const blockRenderMap = Immutable.Map({
+	'atomic': {
+		element: DraftImgContainer
+	}
+});
+
+const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
 
 const plugins = [focusPlugin, videoPlugin, toolbarPlugin, linkifyPlugin, imagePlugin, linkPlugin];
-
-const categories = ['Art', 'Comics', 'Fake_News', 'Life', 'Movies', 'Music', 'Sports', 'Video_Games'];
+const categories = config.categories;
+const tabCharacter = "	";
 
 
 class EditArticle extends React.Component {
 	constructor(props) {
 		super(props);
-		var categories = new Set(props.categories);
+		var category = new Set(props.categories);
+		if (category.has('Art_Photography')) {
+			category.delete('Art_Photography');
+			category.add('Art/Photography');
+		}
+		if (category.has('Fashion_Kicks')) {
+			category.delete('Fashion_Kicks');
+			category.add('Fashion/Kicks');
+		}
 		
 		this.state = {editorStateBody: props.article,
 						ogTitle: props.title,
 						title: props.title,
 						author: props.author,
-						category: categories,
+						category: category,
 						logoImg: { original: config.baseUrl + props.title + '/logo' },
 						images: props.images,
 						preview: false,
@@ -91,6 +109,8 @@ class EditArticle extends React.Component {
 		this.handleAuthorChange = this.handleAuthorChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 		this.handleKeyCommand = this.handleKeyCommand.bind(this);
+		this.handlePastedText = this.handlePastedText.bind(this);
+		this.onTab = this.onTab.bind(this);
 	}
 	
 	
@@ -101,6 +121,33 @@ class EditArticle extends React.Component {
 			return 'handled';
 		}
 		return 'not-handled';
+	}
+	
+	
+	onTab(e) {
+		e.preventDefault();
+
+		let currentState = this.state.editorStateBody;
+		let newContentState = Modifier.replaceText(
+		  currentState.getCurrentContent(),
+		  currentState.getSelection(),
+		  tabCharacter
+		);
+
+		this.setState({editorStateBody: EditorState.push(currentState, newContentState, 'insert-characters')});
+	}
+	
+	
+	handlePastedText(text) {
+		const { editorStateBody } = this.state;
+		const pastedBlocks = ContentState.createFromText(text).blockMap;
+		const newState = Modifier.replaceWithFragment(
+			editorStateBody.getCurrentContent(),
+			editorStateBody.getSelection(),
+			pastedBlocks
+		);
+		this.onChangeBody(EditorState.push(editorStateBody, newState, 'insert-fragment'));
+		return 'handled';
 	}
 	
 	handleChange(event) {
@@ -184,7 +231,8 @@ class EditArticle extends React.Component {
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ categories: cats, title: title, ogTitle: ogTitle, author: author, article: articleRaw })
+					body: JSON.stringify({ categories: cats, title: title, ogTitle: ogTitle, author: author, article: articleRaw }),
+					credentials: 'include'
 				})
 					.then((response) => {
 						this.setState({ finishPublish: true });
@@ -416,11 +464,11 @@ class EditArticle extends React.Component {
 		const { finishPublish, title, ogTitle, deleteRedirect } = this.state;
 		
 		if (finishPublish && (title !== ogTitle)) {
-			return <Redirect to={`/story/${title}`} />;
+			return <Redirect to={`/realHome/story/${title}`} />;
 		} else if (finishPublish) {
 			onPublish();
 		} else if (deleteRedirect) {
-			return <Redirect to={`/`} />
+			return <Redirect to={`/realHome`} />
 		}
 			
 			
@@ -437,7 +485,7 @@ class EditArticle extends React.Component {
 							author={this.state.author}
 							images={this.state.images}
 						/>
-						<div>
+						<div style={{textAlign: 'left'}}>
 							<button onClick={this._onEditClick.bind(this)}>Back to Edits</button>
 						</div>
 					</div>
@@ -520,7 +568,9 @@ class EditArticle extends React.Component {
 							<Editor 
 								editorState = {this.state.editorStateBody} 
 								handleKeyCommand={this.handleKeyCommand}
-								blockStyleFn={mediaBlockStyleFn}
+								handlePastedText={this.handlePastedText}
+								onTab={this.onTab}
+								blockRenderMap={extendedBlockRenderMap}
 								onChange={this.onChangeBody} 
 								plugins={plugins}
 								textAlign='left'

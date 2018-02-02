@@ -8,6 +8,7 @@
   box-shadow: inset 0px 1px 8px -3px #ABABAB;
   background: #fefefe;
   max-width: 900px;
+  text-align: left;
 }
 
 
@@ -19,7 +20,36 @@
 }
 
 .videoAndImages {
-	
+	padding-top: 56.25%;
+	position: relative;
+	width: 100%;
+	margin: 0;
+	max-height: 70px;
+		box-sizing: border-box;
+	border: 1px solid #ddd;
+	box-shadow: inset 0px 1px 8px -3px #ABABAB;
+	border-radius: 2px;
+}
+
+.videoAndImages > img {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	right: 0;
+	width: auto;
+	max-width: 100%;
+	max-height: 100%;
+	transform: translate(-50%, -50%);
+}
+
+.videoAndImages > div {
+	top: 50%;
+	left: 50%;
+	right: 0;
+	width: auto;
+	max-width: 100%;
+	max-height: 100%;
+	transform: translate(0%, -100%);
 }
 
 .publishBody {
@@ -112,4 +142,13 @@ input[type="checkbox"]{
 
 .button {
 	margin-right: 10px;
+}
+
+
+
+
+@media screen and (max-width: 425px) {
+	.videoAndImagesContainer {
+		display: inline;
+	}
 }
