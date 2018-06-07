@@ -1,12 +1,19 @@
 const path = require('path');
 const webpack = require('webpack');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 
 module.exports = {
 	entry: './src/index.js',
 	
-	plugins: [
-		new webpack.HotModuleReplacementPlugin(),
+    plugins: [
+        new webpack.DefinePlugin({
+            'process.env': {
+                'NODE_ENV': JSON.stringify('production')
+            }
+        }),
+        new webpack.HotModuleReplacementPlugin(),
+        new BundleAnalyzerPlugin(),
 	],
 	
 	output: {
@@ -15,26 +22,22 @@ module.exports = {
 	},
 	
 	module: {
-		
-		loaders: [
-			{
-				test: /\.jsx?$/,
-				loader: 'babel-loader',
-				exclude: /node_modules/,
-				query: {
-					presets: ['react', 'es2015'],
-					plugins: ['add-module-exports']
-				}
-			},
-			{
-				test: \plugin/.css$/,
-				loaders: [
-					'style', 'css',
-				]
-			}
-		],
-		
-		rules: [
+        rules: [
+            {
+                test: /\.jsx?$/,
+                loader: 'babel-loader',
+                exclude: /node_modules/,
+                query: {
+                    presets: ['react', 'es2015'],
+                    plugins: ['add-module-exports']
+                }
+            },
+            {
+                test: /\.css$/,
+                loaders: [
+                    'style', 'css',
+                ]
+            },
 			{
 				test: /^(?!.*?\.module).*\.css$/,
 				use: [

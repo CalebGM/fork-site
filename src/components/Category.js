@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom';
 import DocumentTitle from 'react-document-title';
 import QuickArticleDisplay from './QuickArticleDisplay.js';
-import CategoryStyles from '../Category.css';
+import CategoryStyles from '../styles/Category.css';
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
@@ -76,25 +76,25 @@ class Category extends React.Component {
 	
 	render() {
 		const { cat } = this.state;
-		const formatCat = this.withoutUnderscore(cat);
+        const formatCat = this.withoutUnderscore(cat);
 		
 		return (
-		<DocumentTitle title={formatCat + ' - Awesome Totally Awesome'}>
-		<div className={CategoryStyles.main}>
-			<div className={CategoryStyles.articleList}>
-				{this.state.articles ? (
-					this.state.articles.map(article => (
-						<QuickArticleDisplay  key={article.Title} article={article} />
-					))
-				) : (
-					<div></div>
-				)}
-			</div>
-			<Link className={CategoryStyles.link} to={`/realHome/cat/${this.state.cat}/page=${this.state.nextPage}`}>
-				Next Page
-			</Link>
-		</div>
-		</DocumentTitle>
+            <DocumentTitle title={formatCat + ' - Collaboration Treehouse'}>
+                <div>
+			        <div className={CategoryStyles.articleList}>
+				        {this.state.articles ? (
+					        this.state.articles.map(article => (
+						        <QuickArticleDisplay  key={article.idArticles} article={article} />
+					        ))
+				        ) : (
+					        <div></div>
+				        )}
+			        </div>
+			        <Link className={CategoryStyles.link} to={`/cat/${this.state.cat}/page=${this.state.nextPage}`}>
+				        Next Page
+			        </Link>
+                </div>
+		    </DocumentTitle>
 		);
 	}
 	

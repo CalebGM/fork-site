@@ -18,10 +18,10 @@ import createLinkPlugin from 'draft-js-link-plugin';
 import '!style-loader!css-loader!draft-js-link-plugin/lib/plugin.css';
 
 
-import editorStyles from '../Editor.css';
-import videoStyles from '../Video.css';
-import imageStyles from '../Image.css';
-import aboutStyles from '../AboutUs.css';
+import editorStyles from '../styles/Editor.css';
+import videoStyles from '../styles/Video.css';
+import imageStyles from '../styles/Image.css';
+import aboutStyles from '../styles/AboutUs.css';
 
 
 var env = process.env.NODE_ENV || 'development';
@@ -118,12 +118,12 @@ class About extends React.Component {
 	
 	
 	render() {
-		const { login } = this.props;
+		const { login, admin } = this.props;
 		const { body, inEdit } = this.state;
-		const editMode = login && inEdit;
+		const editMode = login && admin && inEdit;
 		
 		return (
-			<DocumentTitle title={'About Us - Awesome Totally Awesome'}>
+			<DocumentTitle title={'About Us - Collaboration Treehouse'}>
 			<div>
 				{editMode ? (
 					<EditAbout
@@ -133,7 +133,7 @@ class About extends React.Component {
 					/>
 				) : (
 					<div className={aboutStyles.About}>
-						{login ? (
+						{login && admin ? (
 							<button onClick={this.startEdit.bind(this)}>Edit About Us</button>
 						) : (
 							<div></div>
@@ -158,7 +158,8 @@ class About extends React.Component {
 
 const mapStateToProps = state => {
 	return {
-		login: state.login
+        login: state.user.login,
+        admin: state.user.admin
 	}
 }
 

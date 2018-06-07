@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import DocumentTitle from 'react-document-title';
 import QuickArticleDisplay from './QuickArticleDisplay.js';
-import CategoryStyles from '../Category.css';
+import CategoryStyles from '../styles/Category.css';
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
@@ -17,7 +18,8 @@ class Author extends React.Component {
 	}
 	
 	
-	componentDidMount() {
+    componentDidMount() {
+        console.log(this);
 		this.fetchAuthorArticles();
 	}
 	
@@ -55,26 +57,27 @@ class Author extends React.Component {
 	}
 
 
-	render() {
+    render() {
+        const { author } = this.state;
 		return (
-		<div>
-			<div className={CategoryStyles.articleList}>
-				{this.state.articles ? (
-					this.state.articles.map(article => (
-						<div key={article.Title}>
-							<QuickArticleDisplay  article={article} />
-						</div>
-					))
-				) : (
-					<div></div>
-				)}
-			</div>
-			<div>
-				<Link className={CategoryStyles.link} to={`/realHome/auth/${this.state.author}/page=${this.state.nextPage}`}>
-					Next Page
-				</Link>
-			</div>
-		</div>
+            <DocumentTitle title={author + ' - Collaboration Treehouse'}>
+			    <div className={CategoryStyles.articleList}>
+				    {this.state.articles ? (
+					    this.state.articles.map(article => (
+						    <div key={article.idArticles}>
+							    <QuickArticleDisplay  article={article} />
+						    </div>
+					    ))
+				    ) : (
+					    <div></div>
+				    )}
+			    </div>
+			    <div>
+				    <Link className={CategoryStyles.link} to={`/auth/${this.state.author}/page=${this.state.nextPage}`}>
+					    Next Page
+				    </Link>
+			    </div>
+		    </DocumentTitle>
 		);
 	}
 

@@ -20,15 +20,15 @@
 }
 
 .videoAndImages {
-	padding-top: 56.25%;
-	position: relative;
-	width: 100%;
-	margin: 0;
-	max-height: 70px;
-		box-sizing: border-box;
-	border: 1px solid #ddd;
-	box-shadow: inset 0px 1px 8px -3px #ABABAB;
-	border-radius: 2px;
+    padding-top: 56.25%;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    max-height: 70px;
+    box-sizing: border-box;
+    border: 1px solid #ddd;
+    box-shadow: inset 0px 1px 8px -3px #ABABAB;
+    border-radius: 2px;
 }
 
 .videoAndImages > img {
@@ -83,7 +83,7 @@ input[type="checkbox"]{
 	border-radius: 2px;
 }
 
-.TitleInput{
+.TitleInputBig{
 	width: 100%;
 	font-family: arial, sans-serif;
 	font-size: 30px;
@@ -92,8 +92,19 @@ input[type="checkbox"]{
 	border: none;
 }
 
+.TitleInputSmall {
+    display: none;
+    width: 100%;
+    font-family: arial, sans-serif;
+    font-size: 30px;
+    font-style: italic;
+    font-weight: bold;
+    border: none;
+}
+
 .SubInfo{
 	display: flex;
+    background-color: white;
 	width: 100%;
 }
 
@@ -124,6 +135,7 @@ input[type="checkbox"]{
 
 .PictureSpace{
 	display: flex;
+    justify-content: center;
 	width: 100%;
 }
 
@@ -137,8 +149,7 @@ input[type="checkbox"]{
 
 
 
-.buttons {
-}
+
 
 .button {
 	margin-right: 10px;
@@ -151,4 +162,26 @@ input[type="checkbox"]{
 	.videoAndImagesContainer {
 		display: inline;
 	}
+}
+
+@media screen and (max-width: 700px) {
+    .PictureSpace {
+        display: block;
+    }
+    .LogoAdd, .ImageBarAdd {
+        width: 80%;
+        max-width: 100%;
+        margin: auto;
+    }
+    .publishBody {
+        width: auto;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+    .TitleInputBig {
+        display: none;
+    }
+    .TitleInputSmall {
+        display: block;
+    }
 }

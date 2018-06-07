@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import quickDisplay from '../QuickArticle.css';
+import quickDisplay from '../styles/QuickArticle.css';
+import emptyLogo from '../emptyLogo-min.png';
 
 
 var env = process.env.NODE_ENV || 'development';
@@ -15,14 +16,15 @@ class QuickArticleDisplay extends React.Component {
 	
 	componentDidMount() {
 		var articleInfo = this.props.article;
-		var title = articleInfo.Title;
+        var title = articleInfo.Title;
 		var logo = config.baseUrl + title + '/logo';
-		var newCat = this.state.categories;
+        var newCat = this.state.categories;
+        console.log(articleInfo);
 		for (var key in articleInfo) {
-			if (articleInfo[key] === 1) {
+			if (key !== "idArticles" && key !== "idposts" && key !== "User" && articleInfo[key] === 1) {
 				newCat.push(key);
 			}
-		}
+        }
 		
 		var created = new Date(articleInfo.Created);
 		created = created.getMonth()+1 + "/" + created.getDate() + "/" + created.getFullYear();
@@ -66,12 +68,18 @@ class QuickArticleDisplay extends React.Component {
 	}
 	
 	
-	render() {
+    render() {
+        const { article } = this.props;
+        const { logoUrl } = this.state;
+        const { Title, Author, idArticles } = article;
+        
+        const logo = logoUrl ? logoUrl : emptyLogo;
+
 		return (
 			<div className={quickDisplay.Article}>
 				<div className={quickDisplay.ImgContainer}>
-					<Link to={`/realHome/story/${this.props.article.Title}`}>
-						<img src={this.state.logoUrl} alt='Article Too Awesome For Logo'/>
+                    <Link to={`/story/${Title}/id=${idArticles}`}>
+                        <img src={logo} alt="Logo too awesome" onError={(e) => { e.target.src = emptyLogo }} />
 					</Link>
 				</div>
 				<div className={quickDisplay.InfoContainer}>
@@ -82,7 +90,7 @@ class QuickArticleDisplay extends React.Component {
 								let formatCat = this.withoutUnderscore(cat);
 								return (
 									<li className={quickDisplay.Category} key={cat}>
-										<Link className={quickDisplay.CatLink} to={`/realHome/cat/${linkCat}/page=1`} >
+										<Link className={quickDisplay.CatLink} to={`/cat/${linkCat}/page=1`} >
 											{formatCat}
 										</Link>
 									</li>
@@ -91,13 +99,13 @@ class QuickArticleDisplay extends React.Component {
 						</ul>
 					</div>
 					<div className={quickDisplay.Title}>
-						<Link className={quickDisplay.TitleLink} to={`/realHome/story/${this.props.article.Title}`}>
+						<Link className={quickDisplay.TitleLink} to={`/story/${Title}/id=${idArticles}`}>
 							{this.props.article.Title}
 						</Link>
 					</div>
 					<div className={quickDisplay.SubInfo}>
 						<div className={quickDisplay.Author}> 
-							<Link className={quickDisplay.AuthorLink} to={`/realHome/auth/${this.props.article.Author}/page=1`}>
+							<Link className={quickDisplay.AuthorLink} to={`/auth/${Author}/page=1`}>
 								{this.props.article.Author}
 							</Link>
 						</div>

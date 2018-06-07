@@ -23,6 +23,46 @@
 	text-align: center;
 }
 
+.postDiv {
+    padding-top: 14px;
+    text-align: center;
+    width: 100%;
+}
+
+.postButton {
+    text-decoration: none;
+    background-color: #EEEEEE;
+    color: #333333;
+    padding: 2px 6px 2px 6px;
+    border-top: 1px solid #CCCCCC;
+    border-right: 1px solid #333333;
+    border-bottom: 1px solid #333333;
+    border-left: 1px solid #CCCCCC;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 30%;
+}
+
+.PostButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: 120px;
+    height: 50px;
+    background: #559474;
+    padding: 10px;
+    text-decoration: none;
+    text-align: center;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    border-style: none;
+    cursor: pointer;
+}
+
 .App-intro {
   font-size: large;
 }
@@ -69,6 +109,7 @@
 
 .Link {
 	text-decoration: none;
+    background-color: white;
 	color: black;
 	width: 100%
 }
@@ -131,5 +172,19 @@
 		margin-right: auto;
 	}
 
+}
+
+@media screen and (max-width: 750px) {
+    .Body {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    .Link {
+        color: #c58e65;
+        background-color: black;
+    }
 }
 

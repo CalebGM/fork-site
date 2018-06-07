@@ -147,3 +147,19 @@
   display: block;
   margin: 0 0 0 auto;
 }
+
+@media screen and (max-width: 1100px) {
+    .draftJsSidebarPlugin__toolbar__dNtBH {
+        left: 50% !important;
+    }
+}
+
+@media screen and (max-width: 450px) {
+    .draftJsSidebarPlugin__toolbar__dNtBH {
+    }
+
+    .draftJsSidebarPlugin__button__qi1gf {
+        height: auto;
+        width: 30px;
+    }
+}

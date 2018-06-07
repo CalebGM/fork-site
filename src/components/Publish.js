@@ -1,7 +1,9 @@
 /* eslint import/no-webpack-loader-syntax: off */
 
 import React from 'react';
+import DocumentTitle from 'react-document-title';
 import { Redirect } from 'react-router';
+import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { setRedirectUrl } from '../actions';
 
@@ -13,15 +15,15 @@ import createVideoPlugin from 'draft-js-video-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
 import createToolbarPlugin from 'last-draft-js-toolbar-plugin';
-import '!style-loader!css-loader!../draftToolbarStyles.css';
+//import '!style-loader!css-loader!../styles/draftToolbarStyles.css';
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import '!style-loader!css-loader!draft-js-linkify-plugin/lib/plugin.css';
 import createLinkPlugin from 'draft-js-link-plugin';
 import '!style-loader!css-loader!draft-js-link-plugin/lib/plugin.css';
 
-import editorStyles from '../Editor.css';
-import videoStyles from '../Video.css';
-import imageStyles from '../Image.css';
+import editorStyles from '../styles/Editor.css';
+import videoStyles from '../styles/Video.css';
+import imageStyles from '../styles/Image.css';
 import 'draft-js-image-plugin/lib/plugin.css';
 
 import MediaAdd from './MediaAdd.js';
@@ -81,13 +83,14 @@ class Publish extends React.Component {
 		this.state = {editorStateTitle: EditorState.createEmpty(),
 						editorStateBody: EditorState.createEmpty(),
 						title: '',
-						author: '',
+						author: props.login ? props.username : 'Guest',
 						category: new Set(),
 						preview: false,
 						finishPublish: false,
 						fetches: {},
 						logoImg: null,
-						images: []
+                        images: [],
+                        articleId: null
 					};
 		this.onChangeTitle = (editorStateTitle) => this.setState({editorStateTitle});
 		this.onChangeBody = (editorStateBody) => this.setState({editorStateBody});
@@ -217,7 +220,9 @@ class Publish extends React.Component {
 			}
 			
 			
-			Promise.all(promises).then(() => {
+            Promise.all(promises).then(() => {
+                var login = this.props.login;
+                var username = this.props.username;
 				var articleContentImg = this.state.editorStateBody.getCurrentContent();
 				var articleRaw = convertToRaw(articleContentImg);
 				fetch(config.url + "/admin/publish/postArticle",
@@ -226,11 +231,19 @@ class Publish extends React.Component {
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ categories: cats, title: title, author: author, article: articleRaw }),
+                    body: JSON.stringify({
+                        categories: cats,
+                        title: title,
+                        author: username,
+                        article: articleRaw,
+                        login: login
+                    }),
 					credentials: 'include'
 				})
-					.then((response) => {
-						this.setState({ finishPublish: true });
+                    .then((response) => response.json())
+                    .then((rs) => {
+                        console.log(rs);
+						this.setState({ finishPublish: true, articleId: rs.articleId });
 					})
 					.catch((error) => {
 						console.log(error);
@@ -426,17 +439,21 @@ class Publish extends React.Component {
 	}
 	
 	render() {
-		const { login } = this.props;
-		const { finishPublish, title } = this.state;
+		const { login, username } = this.props;
+        const { finishPublish, title, articleId } = this.state;
+
+        const AuthorName = login ? username : "Guest";
 		
 		if (!login) {
 			//return <Redirect to={`admin`} />;
-		} else if (finishPublish) {
-			return <Redirect to={`/realHome/story/${title}`} />;
+        }
+        if (finishPublish) {
+            return <Redirect to={`/story/${title}/id=${articleId}`} />;
 		}
 		
-		return (
-			<div className={editorStyles.publishBody} >
+        return (
+            <DocumentTitle title={'Start New Story - Collaboration Treehouse'}>
+                <div className={editorStyles.publishBody} >
 				{this.state.preview ? (
 					<div>
 						<Preview 
@@ -453,28 +470,48 @@ class Publish extends React.Component {
 				) : (
 					<div>
 						<div>
-							<h1>Add Your Article</h1>
-						</div>
+							<h1>Start Your Story</h1>
+                        </div>
+
+                        {!login ? (
+                                <div style={{ color: '#0338ff', paddingBottom: '5px' }}>
+                                    <span>You're currently not logged in. You'll still be able to post, but you won't
+                                        be able to track your contributions. Sign Up or Login </span>
+                                    <Link to="/login">here</Link>
+                                    <span>, or continue as a Guest.</span>
+                                </div>
+                        ) : (
+                                <div></div>
+                        )}
 						
 						<form className={editorStyles.form} name="publish" id="publish" onSubmit={this.handleSubmit} >
 							
-							<input className={editorStyles.TitleInput}
+							<input className={editorStyles.TitleInputBig}
 								type="text"
 								name="title"
 								value={this.state.title}
 								placeholder="Give your article a unique title..."
 								onChange={this.handleTitleChange}
 								required 
-							/>
+                                />
+                            <input className={editorStyles.TitleInputSmall}
+                                type="text"
+                                name="title"
+                                value={this.state.title}
+                                placeholder="Your title..."
+                                onChange={this.handleTitleChange}
+                                required
+                                />
 							<div className={editorStyles.SubInfo}>
-								<div className={editorStyles.AuthorInput}>
-									<input type="text"
+                                    <div className={editorStyles.AuthorInput}>
+                                        {AuthorName}
+                                        {/*<input type="text"
 										name="author"
 										value={this.state.author}
 										placeholder="Write the author's name..."
 										onChange={this.handleAuthorChange}
 										required
-									/>
+									/>*/}
 								</div>
 								<fieldset className={editorStyles.checkField} >
 									{this.createCheckboxes()}	
@@ -501,8 +538,6 @@ class Publish extends React.Component {
 						<div className={editorStyles.buttons}>
 							<button className={editorStyles.button} onClick={this._onBoldClick.bind(this)}>Bold</button>
 							<button className={editorStyles.button} onClick={this._onItalicizeClick.bind(this)}>Italic</button>
-							<button className={editorStyles.button} onClick={this._onVidClick.bind(this)}>Add Test Video</button>
-							<button className={editorStyles.button} onClick={this._onImgClick.bind(this)}>Add Test Image</button>
 							<MediaAdd
 								editorState={this.state.editorStateBody}
 								onChange={this.onChangeBody}
@@ -542,8 +577,9 @@ class Publish extends React.Component {
 							</div>
 						</div>
 					</div>
-				)}
-			</div>		
+                    )}
+            </div>
+			</DocumentTitle>		
 		);
 	}
 }	
@@ -551,7 +587,8 @@ class Publish extends React.Component {
 	
 const mapStateToProps = (state, ownProps) => {
 	return {
-		login: state.login,
+        login: state.user.login,
+        username: state.user.username,
 		currentURL: ownProps.location.pathname
 	}
 }

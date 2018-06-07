@@ -1,11 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import QuickArticleDisplay from './QuickArticleDisplay.js';
-import styles from '../Category.css';
+import styles from '../styles/Category.css';
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
-
 
 
 
@@ -69,14 +68,14 @@ class Home extends React.Component {
 			<div className={styles.articleList}>
 				{this.state.articles ? (
 					this.state.articles.map(article => (
-						<QuickArticleDisplay key={article.Title} article={article} />
+						<QuickArticleDisplay key={article.idArticles} article={article} />
 					))
 				) : (
 					<div></div>
 				)}
 			</div>
 			<div>
-				<Link className={styles.link} to={`/realHome/page=${this.state.nextPage}`}>
+				<Link className={styles.link} to={`/page=${this.state.nextPage}`}>
 					Next Page
 				</Link>
 			</div>

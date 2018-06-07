@@ -1,0 +1,212 @@
+.Article {
+    text-align: left;
+    margin-top: 15px;
+    margin-left: 5px;
+    margin-bottom: 30px;
+}
+
+.Entry:nth-of-type(odd) {
+    background-color: #e8e8e8b5;
+}
+
+.Entry:nth-of-type(even) {
+    background-color: white;
+}
+
+.Body {
+    font-family: Lato, sans-serif;
+    padding-left: 16px;
+    max-width: 900px;
+    line-height: 200%;
+    overflow: auto;
+}
+
+.OptionsBox {
+    display: flex;
+    opacity: 0;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.Entry:hover > .OptionsBox{
+    opacity: 1;
+}
+
+.PostBox {
+}
+
+
+.ChildBox {
+}
+
+.ChildButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 140px;
+    height: 60px;
+    background: #b73535;
+    padding: 10px;
+    text-decoration: none;
+    text-align: center;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    border-style: none;
+    cursor: pointer;
+}
+
+    .ChildButton:focus {
+        outline: 0;
+    }
+
+.PostButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 50px;
+    background: #559474;
+    padding: 10px;
+    text-decoration: none;
+    text-align: center;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    border-style: none;
+    cursor: pointer;
+}
+
+    .PostButton:focus {
+        outline: 0;
+    }
+
+.Title {
+    font-family: Oswald, sans-serif;
+    font-style: italic;
+    font-size: 30px;
+}
+
+.Title:before {
+    content: '"';
+}
+.Title:after {
+    content: '"';
+}
+
+
+.SubInfo {
+    display: flex;
+    font-size: 13px;
+    margin-bottom: 20px;
+    padding-left: 3px;
+    color: dimgrey;
+}
+
+.ImageBarContainer {
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+}
+
+.ImageBar {
+    width: 80%;
+}
+
+.Author {
+    padding-right: 15px;
+}
+
+    .Author:before {
+        content: 'By: ';
+    }
+
+.Categories {
+    padding-right: 15px;
+}
+
+.CatList {
+    margin: 0;
+    padding: 0;
+}
+
+    .CatList:before {
+        content: 'In: ';
+    }
+
+.Category {
+    display: inline;
+}
+
+    .Category:after {
+        content: ' - ';
+    }
+
+    .Category:last-child:after {
+        content: '';
+    }
+
+
+.Link {
+    text-decoration: none;
+    color: #5763bd;
+}
+
+
+.Created {
+    padding-right: 15px;
+}
+
+    .Created:before {
+        content: 'Created: ';
+    }
+
+.Updated:before {
+    content: 'Last Updated: ';
+}
+
+
+@media screen and (max-width: 700px) {
+    .Article {
+        margin-left: 0;
+    }
+
+    .Author {
+        padding: 0;
+    }
+
+    .Title {
+        text-align: center;
+        padding: 3px;
+    }
+
+    .Categories {
+        padding: 0;
+    }
+
+    .CatList:before {
+        content: '';
+    }
+
+    .SubInfo {
+        display: block;
+        line-height: 150%;
+        text-align: center;
+    }
+
+    .Created {
+        padding: 0;
+    }
+
+    Body {
+        width: 100%;
+    }
+}
+
+@media screen and (max-width: 425px) {
+    .Body {
+        padding: 10px;
+        font-size: 13px;
+    }
+}

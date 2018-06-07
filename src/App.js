@@ -1,56 +1,69 @@
 import React, { Component } from 'react';
+import { Redirect } from 'react-router';
 import { Route, Link } from 'react-router-dom';
 import DocumentTitle from 'react-document-title';
 import Header from './components/Header.js';
 import Sidebar from './components/Sidebar.js';
 import Category from './components/Category.js';
 import Publish from './components/Publish.js';
-import Article from './components/Article.js';
+import Story from './components/Story.js';
 import Adbar from './components/Adbar.js';
 import Home from './components/Home.js';
 import Author from './components/Author.js';
+import Profile from './components/Profile.js';
 import About from './components/About.js';
 import CheckLogin from './components/CheckLogin.js';
-import AdminLogin from './components/AdminLogin.js';
-import logo from './logo.svg';
+import UserLogin_SignUp from './components/UserLogin_SignUp.js';
+//import logo from './logo.svg';
 import banner from './ata_banner.jpg';
-import appStyles from './App.css';
+import appStyles from './styles/App.css';
 
 class App extends Component {
 	
 	constructor(props) {
 		super(props);
-		this.state = { open: false };
+        this.state = { open: false, post: false };
+        this.makePost = this.makePost.bind(this);
 	}
 	
 	componentDidMount() {
-		document.addEventListener('click', this.closePopover.bind(this));
+        document.addEventListener('click', this.closePopover.bind(this));
+
 	}
 	
 	componentWillUnmount() {
 		document.removeEventListener('click', this.closePopover.bind(this));
 	}
 	
-	closePopover() {
+    closePopover() {
 		if(!this.preventNextClose && this.state.open) {
 			this.setState({open: false});
 		}
 		
 		this.preventNextClose = false;
 	}
-	openMenu() {
+    openMenu() {
 		if(!this.state.open) {
 			this.preventNextClose = true;
 			this.setState({open: true});
 		}
-	}
+    }
+
+
+    makePost() {
+        this.setState({ post: true });
+    }
 
 	render() {
-		const { open } = this.state;
-		const MenuStyle = open ? appStyles.SidebarOpen : appStyles.Sidebar;
+		const { open, post } = this.state;
+        const MenuStyle = open ? appStyles.SidebarOpen : appStyles.Sidebar;
+
+        if (post) {
+            return <Redirect to={`/publish`} />;
+        }
 		
 		return (
-			<DocumentTitle title={'Awesome Totally Awesome'}>
+			<DocumentTitle title={'Collaboration Treehouse'}>
 				 <div className={appStyles.App}>
 				
 					<div className={appStyles.Main}>
@@ -59,25 +72,31 @@ class App extends Component {
 							<div className={appStyles.header}>
 								<Header />
 							</div>
-							<div className={appStyles.banner}>
+                            {/*<div className={appStyles.banner}>
 							  <img src={banner} className={appStyles.logos} alt="logo" />
-							</div>
+							</div>*/}
 						</Link>
 						
 						<div className={MenuStyle}>
 							<Sidebar />
-						</div>
+                        </div>
+                        <div className={appStyles.postDiv}>
+                            <Link className={appStyles.PostButton} to="/publish">Start New Story</Link>
+                        </div>
 						
 						<div className={appStyles.Body}>
-							<Route path="/realHome" component={CheckLogin} />
-							<Route exact path="/realHome" component={Home}/>
-							<Route exact path="/realHome/page=:num" component={Home}/>
-							<Route exact path="/realHome/auth/:author/page=:num" component={Author}/>
-							<Route exact path="/realHome/admin" component={AdminLogin}/>
-							<Route exact path="/realHome/admin/publish" component={Publish}/> 
-							<Route exact path="/realHome/story/:article" component={Article}/>
-							<Route exact path="/realHome/cat/:subCat/page=:num" component={Category}/>
-							<Route exact path="/realHome/about" component={About}/>
+							<Route path="/" component={CheckLogin} />
+							<Route exact path="/" component={Home}/>
+							<Route exact path="/page=:num" component={Home}/>
+							<Route exact path="/auth/:author/page=:num" component={Author}/>
+							<Route exact path="/login" component={UserLogin_SignUp}/>
+                            <Route exact path="/publish" component={Publish} />
+                            <Route exact path="/story/:article/id=:id/at=:post/id=:postId" component={Story} />
+                            <Route exact path="/story/:article/id=:id/at=:post/id=:postId/:showFull" component={Story} />
+                            <Route exact path="/profile" component={Profile} />
+							<Route exact path="/story/:article/id=:id" component={Story}/>
+							<Route exact path="/cat/:subCat/page=:num" component={Category}/>
+							<Route exact path="/about" component={About}/>
 							
 						</div>
 					 </div>

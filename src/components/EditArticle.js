@@ -11,15 +11,15 @@ import createVideoPlugin from 'draft-js-video-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
 import createToolbarPlugin from 'last-draft-js-toolbar-plugin';
-import '!style-loader!css-loader!../draftToolbarStyles.css';
+import '!style-loader!css-loader!../styles/draftToolbarStyles.css';
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import '!style-loader!css-loader!draft-js-linkify-plugin/lib/plugin.css';
 import createLinkPlugin from 'draft-js-link-plugin';
 import '!style-loader!css-loader!draft-js-link-plugin/lib/plugin.css';
 
-import editorStyles from '../Editor.css';
-import videoStyles from '../Video.css';
-import imageStyles from '../Image.css';
+import editorStyles from '../styles/Editor.css';
+import videoStyles from '../styles/Video.css';
+import imageStyles from '../styles/Image.css';
 import '!style-loader!css-loader!draft-js-inline-toolbar-plugin/lib/plugin.css';
 import 'draft-js-image-plugin/lib/plugin.css';
 
@@ -464,11 +464,11 @@ class EditArticle extends React.Component {
 		const { finishPublish, title, ogTitle, deleteRedirect } = this.state;
 		
 		if (finishPublish && (title !== ogTitle)) {
-			return <Redirect to={`/realHome/story/${title}`} />;
+			return <Redirect to={`/story/${title}`} />;
 		} else if (finishPublish) {
 			onPublish();
 		} else if (deleteRedirect) {
-			return <Redirect to={`/realHome`} />
+			return <Redirect to={`/`} />
 		}
 			
 			

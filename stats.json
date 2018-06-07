@@ -1,0 +1,168 @@
+{
+  "errors": [
+    "./src/index.js\nModule build failed: Error: Using `babel-preset-react-app` requires that you specify `NODE_ENV` or `BABEL_ENV` environment variables. Valid values are \"development\", \"test\", and \"production\". Instead, received: undefined. (While processing preset: \"D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-preset-react-app\\\\index.js\")\n    at Object.<anonymous> (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-preset-react-app\\index.js:51:9)\n    at Module._compile (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\v8-compile-cache\\v8-compile-cache.js:178:30)\n    at Object.Module._extensions..js (module.js:579:10)\n    at Module.load (module.js:487:32)\n    at tryModuleLoad (module.js:446:12)\n    at Function.Module._load (module.js:438:3)\n    at Module.require (module.js:497:17)\n    at require (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\v8-compile-cache\\v8-compile-cache.js:159:20)\n    at D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-core\\lib\\transformation\\file\\options\\option-manager.js:296:17\n    at Array.map (native)\n    at OptionManager.resolvePresets (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-core\\lib\\transformation\\file\\options\\option-manager.js:275:20)\n    at OptionManager.mergePresets (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-core\\lib\\transformation\\file\\options\\option-manager.js:264:10)\n    at OptionManager.mergeOptions (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-core\\lib\\transformation\\file\\options\\option-manager.js:249:14)\n    at OptionManager.init (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-core\\lib\\transformation\\file\\options\\option-manager.js:368:12)\n    at File.initOptions (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-core\\lib\\transformation\\file\\index.js:212:65)\n    at new File (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-core\\lib\\transformation\\file\\index.js:135:24)\n    at Pipeline.transform (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-core\\lib\\transformation\\pipeline.js:46:16)\n    at transpile (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-loader\\lib\\index.js:48:20)\n    at Object.module.exports (D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-loader\\lib\\index.js:163:20)"
+  ],
+  "warnings": [
+    "configuration\nThe 'mode' option has not been set. Set 'mode' option to 'development' or 'production' to enable defaults for this environment. "
+  ],
+  "version": "4.2.0",
+  "hash": "f0f0e70d8997fc1d6fb1",
+  "time": 1428,
+  "builtAt": 1528243920199,
+  "publicPath": "",
+  "outputPath": "D:\\My Documents\\Caleb\\projects\\fork-site\\dist",
+  "assetsByChunkName": {
+    "main": "bundle.js"
+  },
+  "assets": [
+    {
+      "name": "bundle.js",
+      "size": 10125,
+      "chunks": [
+        0
+      ],
+      "chunkNames": [
+        "main"
+      ]
+    }
+  ],
+  "filteredAssets": 0,
+  "entrypoints": {
+    "main": {
+      "chunks": [
+        0
+      ],
+      "assets": [
+        "bundle.js"
+      ]
+    }
+  },
+  "chunks": [
+    {
+      "id": 0,
+      "rendered": true,
+      "initial": true,
+      "entry": true,
+      "size": 2492,
+      "names": [
+        "main"
+      ],
+      "files": [
+        "bundle.js"
+      ],
+      "hash": "ccbf2bed29fb221a1b5d",
+      "siblings": [],
+      "parents": [],
+      "children": [],
+      "modules": [
+        {
+          "id": 0,
+          "identifier": "D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-loader\\lib\\index.js??ref--4!D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\style-loader\\index.js!D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\css-loader\\index.js??ref--7-1!D:\\My Documents\\Caleb\\projects\\fork-site\\src\\index.js",
+          "name": "./src/index.js",
+          "index": 0,
+          "index2": 0,
+          "size": 2492,
+          "cacheable": true,
+          "built": true,
+          "optional": false,
+          "prefetched": false,
+          "chunks": [
+            0
+          ],
+          "issuer": null,
+          "issuerId": null,
+          "issuerName": null,
+          "issuerPath": null,
+          "profile": {
+            "factory": 69,
+            "building": 1257
+          },
+          "failed": true,
+          "errors": 1,
+          "warnings": 0,
+          "assets": [],
+          "reasons": [
+            {
+              "moduleId": null,
+              "moduleIdentifier": null,
+              "module": null,
+              "moduleName": null,
+              "type": "single entry",
+              "userRequest": "./src/index.js",
+              "loc": "main"
+            }
+          ],
+          "usedExports": true,
+          "providedExports": null,
+          "optimizationBailout": [
+            "ModuleConcatenation bailout: Module is not an ECMAScript module"
+          ],
+          "depth": 0,
+          "source": "throw new Error(\"Module build failed: Error: Using `babel-preset-react-app` requires that you specify `NODE_ENV` or `BABEL_ENV` environment variables. Valid values are \\\"development\\\", \\\"test\\\", and \\\"production\\\". Instead, received: undefined. (While processing preset: \\\"D:\\\\\\\\My Documents\\\\\\\\Caleb\\\\\\\\projects\\\\\\\\fork-site\\\\\\\\node_modules\\\\\\\\babel-preset-react-app\\\\\\\\index.js\\\")\\n    at Object.<anonymous> (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-preset-react-app\\\\index.js:51:9)\\n    at Module._compile (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\v8-compile-cache\\\\v8-compile-cache.js:178:30)\\n    at Object.Module._extensions..js (module.js:579:10)\\n    at Module.load (module.js:487:32)\\n    at tryModuleLoad (module.js:446:12)\\n    at Function.Module._load (module.js:438:3)\\n    at Module.require (module.js:497:17)\\n    at require (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\v8-compile-cache\\\\v8-compile-cache.js:159:20)\\n    at D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\options\\\\option-manager.js:296:17\\n    at Array.map (native)\\n    at OptionManager.resolvePresets (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\options\\\\option-manager.js:275:20)\\n    at OptionManager.mergePresets (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\options\\\\option-manager.js:264:10)\\n    at OptionManager.mergeOptions (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\options\\\\option-manager.js:249:14)\\n    at OptionManager.init (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\options\\\\option-manager.js:368:12)\\n    at File.initOptions (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\index.js:212:65)\\n    at new File (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\index.js:135:24)\\n    at Pipeline.transform (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\pipeline.js:46:16)\\n    at transpile (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-loader\\\\lib\\\\index.js:48:20)\\n    at Object.module.exports (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-loader\\\\lib\\\\index.js:163:20)\");"
+        }
+      ],
+      "filteredModules": 0,
+      "origins": [
+        {
+          "module": "",
+          "moduleIdentifier": "",
+          "moduleName": "",
+          "loc": "main",
+          "request": "./src/index.js",
+          "reasons": []
+        }
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "id": 0,
+      "identifier": "D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\babel-loader\\lib\\index.js??ref--4!D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\style-loader\\index.js!D:\\My Documents\\Caleb\\projects\\fork-site\\node_modules\\css-loader\\index.js??ref--7-1!D:\\My Documents\\Caleb\\projects\\fork-site\\src\\index.js",
+      "name": "./src/index.js",
+      "index": 0,
+      "index2": 0,
+      "size": 2492,
+      "cacheable": true,
+      "built": true,
+      "optional": false,
+      "prefetched": false,
+      "chunks": [
+        0
+      ],
+      "issuer": null,
+      "issuerId": null,
+      "issuerName": null,
+      "issuerPath": null,
+      "profile": {
+        "factory": 69,
+        "building": 1257
+      },
+      "failed": true,
+      "errors": 1,
+      "warnings": 0,
+      "assets": [],
+      "reasons": [
+        {
+          "moduleId": null,
+          "moduleIdentifier": null,
+          "module": null,
+          "moduleName": null,
+          "type": "single entry",
+          "userRequest": "./src/index.js",
+          "loc": "main"
+        }
+      ],
+      "usedExports": true,
+      "providedExports": null,
+      "optimizationBailout": [
+        "ModuleConcatenation bailout: Module is not an ECMAScript module"
+      ],
+      "depth": 0,
+      "source": "throw new Error(\"Module build failed: Error: Using `babel-preset-react-app` requires that you specify `NODE_ENV` or `BABEL_ENV` environment variables. Valid values are \\\"development\\\", \\\"test\\\", and \\\"production\\\". Instead, received: undefined. (While processing preset: \\\"D:\\\\\\\\My Documents\\\\\\\\Caleb\\\\\\\\projects\\\\\\\\fork-site\\\\\\\\node_modules\\\\\\\\babel-preset-react-app\\\\\\\\index.js\\\")\\n    at Object.<anonymous> (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-preset-react-app\\\\index.js:51:9)\\n    at Module._compile (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\v8-compile-cache\\\\v8-compile-cache.js:178:30)\\n    at Object.Module._extensions..js (module.js:579:10)\\n    at Module.load (module.js:487:32)\\n    at tryModuleLoad (module.js:446:12)\\n    at Function.Module._load (module.js:438:3)\\n    at Module.require (module.js:497:17)\\n    at require (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\v8-compile-cache\\\\v8-compile-cache.js:159:20)\\n    at D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\options\\\\option-manager.js:296:17\\n    at Array.map (native)\\n    at OptionManager.resolvePresets (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\options\\\\option-manager.js:275:20)\\n    at OptionManager.mergePresets (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\options\\\\option-manager.js:264:10)\\n    at OptionManager.mergeOptions (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\options\\\\option-manager.js:249:14)\\n    at OptionManager.init (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\options\\\\option-manager.js:368:12)\\n    at File.initOptions (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\index.js:212:65)\\n    at new File (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\file\\\\index.js:135:24)\\n    at Pipeline.transform (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-core\\\\lib\\\\transformation\\\\pipeline.js:46:16)\\n    at transpile (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-loader\\\\lib\\\\index.js:48:20)\\n    at Object.module.exports (D:\\\\My Documents\\\\Caleb\\\\projects\\\\fork-site\\\\node_modules\\\\babel-loader\\\\lib\\\\index.js:163:20)\");"
+    }
+  ],
+  "filteredModules": 0,
+  "children": []
+}
+Webpack Bundle Analyzer is started at http://127.0.0.1:8888
+Use Ctrl+C to close it

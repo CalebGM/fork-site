@@ -1,0 +1,37 @@
+.main {
+    display: flex;
+    flex-wrap: wrap;
+    padding-top: 20px;
+    padding-left: 9px;
+}
+
+.linkContainer {
+    display: flex;
+    width: 140px;
+    height: 100px;
+    justify-content: center;
+    padding-right: 7px;
+}
+
+.link {
+    display: inline-block;
+    text-decoration: none;
+}
+
+
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 140px;
+    height: 60px;
+    background: #4E9CAF;
+    padding: 10px;
+    text-decoration: none;
+    text-align: center;
+    border-radius: 5px;
+    border-style: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+}

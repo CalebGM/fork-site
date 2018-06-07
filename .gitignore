@@ -16,13 +16,13 @@ app/node_modules
 .env.development.local
 .env.test.local
 .env.production.local
+.vs
 app/file
 /app/*.zip
-/config
-/scripts
 
 # config
-/app/config/config.js
+/app/config
+/app/.ebextensions
 /src/config.js
 
 npm-debug.log*

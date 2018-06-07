@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import styles from '../mediaStyles.css';
+import styles from '../styles/mediaStyles.css';
 
 
 class MediaAdd extends Component {
@@ -95,7 +95,8 @@ class MediaAdd extends Component {
 							<button type="button" style={{marginBottom: '5px'}} onClick={this.onClick}>
 								<i className="fa fa-save"></i>
 								<input 
-									type="file" 
+                                    type="file"
+                                    accept="image/*"
 									ref={(input) => { this.input =input; }}
 									onChange={this.getLocalImg}
 									style={{display: "none"}}

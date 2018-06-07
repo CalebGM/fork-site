@@ -1,6 +1,6 @@
 import React from 'react';
 import {Cropper} from 'react-image-cropper';
-import styles from '../mediaStyles.css';
+import styles from '../styles/mediaStyles.css';
 
 class LogoAdd extends React.Component {
 	

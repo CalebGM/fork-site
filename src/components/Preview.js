@@ -7,10 +7,10 @@ import createVideoPlugin from 'draft-js-video-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
 
-import editorStyles from '../Editor.css';
-import videoStyles from '../Video.css';
-import imageStyles from '../Image.css';
-import ArticleStyles from '../Article.css';
+import editorStyles from '../styles/Editor.css';
+import videoStyles from '../styles/Video.css';
+import imageStyles from '../styles/Image.css';
+import ArticleStyles from '../styles/Article.css';
 
 
 const imagePlugin = createImagePlugin({ theme: imageStyles });

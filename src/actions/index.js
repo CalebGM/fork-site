@@ -1,7 +1,15 @@
-export const login = () => {
+export const login = (username, email) => {
 	return {
-		type: 'LOGIN'
+        type: 'LOGIN',
+        username: username,
+        email: email
 	}
+}
+
+export const adminLogin = () => {
+    return {
+        type: 'ADMINLOGIN'
+    }
 }
 
 export const logout = () => {
@@ -21,4 +29,18 @@ export const nullRedirect = () => {
 	return {
 		type: 'REDIRECTED'
 	}
+}
+
+
+export const modifyStory = (posts) => {
+    return {
+        type: 'MODIFY',
+        newPosts: posts
+    }
+}
+
+export const emptyStory = () => {
+    return {
+        type: 'EMPTY'
+    }
 }

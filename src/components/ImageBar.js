@@ -2,9 +2,9 @@
 
 import React from 'react';
 import ImageGallery from 'react-image-gallery';
-import styles from '../mediaStyles.css';
+import styles from '../styles/mediaStyles.css';
 import '!style-loader!css-loader!react-image-gallery/styles/css/image-gallery.css';
-import '!style-loader!css-loader!../imgBarStyles.css';
+import '!style-loader!css-loader!../styles/imgBarStyles.css';
 
 class ImageBar extends React.Component {
 	
