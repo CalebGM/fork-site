@@ -11,11 +11,12 @@ import Adbar from './components/Adbar.js';
 import Home from './components/Home.js';
 import Author from './components/Author.js';
 import Profile from './components/Profile.js';
+import Announcements from './components/Announcements.js';
+import Announcement from './components/Announcement.js';
 import About from './components/About.js';
 import CheckLogin from './components/CheckLogin.js';
 import UserLogin_SignUp from './components/UserLogin_SignUp.js';
 //import logo from './logo.svg';
-import banner from './ata_banner.jpg';
 import appStyles from './styles/App.css';
 
 class App extends Component {
@@ -95,7 +96,9 @@ class App extends Component {
                             <Route exact path="/story/:article/id=:id/at=:post/id=:postId/:showFull" component={Story} />
                             <Route exact path="/profile" component={Profile} />
 							<Route exact path="/story/:article/id=:id" component={Story}/>
-							<Route exact path="/cat/:subCat/page=:num" component={Category}/>
+                            <Route exact path="/cat/:subCat/page=:num" component={Category} />
+                            <Route exact path="/announcements/page=:num" component={Announcements} />
+                            <Route exact path="/announcement/:title/id=:id" component={Announcement} />
 							<Route exact path="/about" component={About}/>
 							
 						</div>

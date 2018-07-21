@@ -8,9 +8,8 @@ import DocumentTitle from 'react-document-title';
 import reducer from './reducers/index.js';
 import './styles/index.css';
 import App from './App';
-import banner from './ata_banner.jpg';
 import registerServiceWorker from './registerServiceWorker';
-
+//<img style={{maxWidth: '100%'}} src={banner} alt="Fast ain't it"/>
 let store = createStore(reducer, applyMiddleware(thunk));
 
 ReactDOM.render(
@@ -22,7 +21,7 @@ ReactDOM.render(
 					<DocumentTitle title={'Collaboration Treehouse'}>
 					<div >
 						<div style={{textAlign: 'center', padding: '20px'}}>
-							<img style={{maxWidth: '100%'}} src={banner} alt="Fast ain't it"/>
+							
 						</div>
 						<div style={{paddingTop: '1em', textAlign: 'center', fontSize: '-webkit-xxx-large'}}>
 							Awesome Totally Awesome

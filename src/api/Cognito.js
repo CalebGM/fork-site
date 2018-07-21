@@ -3,7 +3,6 @@ import { CognitoUserPool, CognitoUserAttribute, CognitoUser, AuthenticationDetai
 } from 'amazon-cognito-identity-js';
 //import AWS from 'amazon-cognito-js';
 import AWS from 'aws-sdk';
-console.log(AWS);
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
@@ -14,7 +13,6 @@ export function signUpUser(username, email, password) {
     const p = new Promise((res, rej) => {
 
         const attributeList = [];
-        console.log(email, password);
         const dataEmail = {
             Name: 'email',
             Value: email
@@ -35,7 +33,6 @@ export function signUpUser(username, email, password) {
                 rej(err);
                 return;
             } else {
-                console.log(username);
                 res(username);
             }
         });
@@ -58,7 +55,7 @@ export function verifyUserAccount(email, pin) {
                 rej(err);
                 return;
             }
-            if (result == "SUCCESS") {
+            if (result === "SUCCESS") {
                 console.log("Successfully verified account!");
                 cognitoUser.signOut();
                 res();
@@ -80,7 +77,6 @@ export function signInUser(username, password) {
             Pool: config.userPool
         }
         const cognitoUser = new CognitoUser(userData);
-        console.log(cognitoUser);
 
         authenticateUser(cognitoUser, authenticationDetails)
             .then(() => {
@@ -199,7 +195,7 @@ function authenticateUser(cognitoUser, authenticationDetails) {
                     Logins: loginsObj
                 })
                 AWS.config.credentials.refresh(function () {
-                    console.log(AWS.config.credentials);
+
                 });
                 res();
             },
@@ -213,14 +209,14 @@ function authenticateUser(cognitoUser, authenticationDetails) {
 
 
 function buildUserObject(cognitoUser) {
-    console.log(cognitoUser);
+
     const p = new Promise((res, rej) => {
         cognitoUser.getUserAttributes(function (err, result) {
             if (err) {
                 rej(err);
                 return;
             }
-            console.log(result);
+
             let userProfileObject = {};
             for (let i = 0; i < result.length; i++) {
                 userProfileObject[result[i].getName()] = result[i].getValue();
@@ -264,7 +260,7 @@ export function retrieveUserFromLocalStorage() {
                     Logins: loginsObj
                 });
                 AWS.config.credentials.refresh(function () {
-                    console.log(AWS.config.credentials);
+
                 });
                 res(buildUserObject(cognitoUser));
             });

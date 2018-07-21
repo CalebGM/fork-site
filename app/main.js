@@ -42,6 +42,7 @@ const categories = config.categories;
 const table = config.database.articles;
 const table2 = config.database.users;
 const table3 = config.database.posts;
+const table4 = config.database.announcements;
 
 
 app.use(helmet());
@@ -81,6 +82,85 @@ app.get('/getAboutPage', function(req, res) {
 			res.status(200).send({ body: content });
 		}
 	});
+});
+
+
+app.post('/getAnnouncementsPage', function (req, res) {
+    var page = Number(req.body.page);
+    var offset = (page - 1) * 15;
+
+    var sql = "SELECT * FROM ?? ORDER BY Created DESC LIMIT ?, 15";
+    sql = mysql.format(sql, [table4, offset]);
+
+    connection.query(sql, function (error, results, fields) {
+        if (error) {
+            console.log(error);
+            res.sendStatus(500);
+            return;
+        } else {
+            res.status(200).send(results);
+        }
+    })
+});
+
+
+app.post('/getAnnouncement', function (req, res) {
+    var title = req.body.title;
+    var id = req.body.id;
+    var key = id + '-' + title + '/article';
+    var bucket = config.s3.announceBucket;
+    console.log(key);
+
+    var sql = "SELECT * FROM ?? WHERE Title = ? && idannouncements = ?";
+    sql = mysql.format(sql, [table4, title, id]);
+
+    connection.query(sql, function (error, results, fields) {
+        if (error) {
+            console.log(error);
+            return;
+        } else {
+            s3.getObject(params = { Bucket: bucket, Key: key }, function (err, data) {
+                if (err) {
+                    console.log(err);
+                    res.sendStatus(500);
+                } else {
+                    var content = data.Body.toString();
+                    res.status(200).send({ body: content, info: results });
+                }
+            });
+        }
+    })
+})
+
+
+
+app.post('/getArticle', function (req, res) {
+    var title = req.body.title;
+    var id = req.body.id;
+    var key = id + '-' + title + '/article';
+    var bucket = config.s3.articleBucket;
+
+    var sql = "SELECT * FROM ?? WHERE Title = ? && idArticles = ?";
+    sql = mysql.format(sql, [table, title, id]);
+
+    connection.query(sql, function (error, results, fields) {
+        if (error) {
+            console.log(error);
+            return;
+        } else {
+            s3.getObject(params = { Bucket: bucket, Key: key }, function (err, data) {
+                if (err) {
+                    console.log(err);
+                    res.sendStatus(500);
+                } else {
+                    var content = data.Body.toString();
+                    res.status(200).send({ body: content, info: results });
+                }
+            });
+        }
+    });
+
+
 });
 
 app.post('/getHomePage', function(req, res) {
@@ -544,6 +624,39 @@ app.post('/publish/addPost', function (req, res) {
     });
 });
 
+
+
+app.post('/publish/addAnnouncement', function (req, res) {
+    var title = req.body.title;
+    var date = new Date();
+
+    var sql = "INSERT INTO ?? (Title, Created, Last_Updated) VALUES(?, ?, ?);";
+    var inserts = [table4, title, date, date];
+    sql = mysql.format(sql, inserts);
+
+    connection.query(sql, function (error, results, fields) {
+        if (error) {
+            console.log(error);
+            return;
+        } else {
+            var key = results.insertId + '-' + title + '/article';
+            var article = req.body.article;
+            var art = JSON.stringify(article);
+            var bucket = config.s3.announceBucket;
+            s3.putObject(params = { Bucket: bucket, Key: key, Body: art }, function (err, data) {
+                if (err) {
+                    console.log(err);
+                    res.send(err);
+                } else {
+                    res.status(200).send({ articleId: results.insertId });
+                }
+            });
+        }
+    });
+});
+
+
+
 app.post('/admin/publish/updateAbout', function(req, res) {
 	var newAbout = req.body.article;
 	var about = JSON.stringify(newAbout);
@@ -562,8 +675,9 @@ app.post('/admin/publish/updateAbout', function(req, res) {
 
 
 
+
 var uploadArticle = function (req, res, next) {
-	var key = req.body.title + '/article';
+	var key = req.body.id + '-' + req.body.title + '/article';
 	var article = req.body.article;
 	var art = JSON.stringify(article);
 	var bucket = config.s3.articleBucket;
@@ -580,8 +694,9 @@ var uploadArticle = function (req, res, next) {
 
 var updateSql = function (req, res, next) {
 	var cats = req.body.categories;
-	var oldKey = req.body.ogTitle;
-	var key = req.body.title;
+	var oldTitle = req.body.ogTitle;
+    var newTitle = req.body.title;
+    var id = req.body.id;
 	var author = req.body.author;
 	var date = new Date();
 	var isCat = new Array();
@@ -595,8 +710,8 @@ var updateSql = function (req, res, next) {
 	
 			
 	var sql = "UPDATE ?? SET Title = ?, Author = ?, Story = ?, Images = ?, Video = ?, Goof = ?, " +
-				"Serious = ?, Last_Updated = ? WHERE Title = ?;";
-	var inserts = [table, key, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], date, oldKey];
+				"Serious = ?, Last_Updated = ? WHERE Title = ? && idposts = ?;";
+	var inserts = [table, newTitle, author, isCat[0], isCat[1], isCat[2], isCat[3], isCat[4], date, oldTitle, id];
 	sql = mysql.format(sql, inserts);
 	
 	connection.query(sql, function (error, results, fields) {
@@ -611,8 +726,9 @@ var updateSql = function (req, res, next) {
 }
 
 var deleteArticle = function (req, res, next) {
-	var oldKey = req.body.ogTitle;
-	var key = req.body.title;
+    var id = req.body.id;
+	var oldKey = id + '-' + req.body.ogTitle;
+	var key = id + '-' + req.body.title;
 	var bucket = config.s3.articleBucket;
 	
 	if (oldKey === key) {
@@ -641,11 +757,13 @@ var deleteArticle = function (req, res, next) {
 app.post('/admin/publish/updateArticle', [updateSql, deleteArticle, uploadArticle]);
 
 
-app.post('/admin/publish/deleteArticle', function(req, res) {
-	var key = req.body.key;
+app.post('/admin/publish/deleteArticle', function (req, res) {
+    var id = req.body.id;
+    var title = req.body.key;
+	var key = id + '-' + title;
 	
-	var sql = "DELETE FROM ?? WHERE Title = ?";
-	sql = mysql.format(sql, [table, key]);
+	var sql = "DELETE FROM ?? WHERE Title = ? && idArticle = ?";
+	sql = mysql.format(sql, [table, title, id]);
 	
 	connection.query(sql, function (error, results, fields) {
 		if (error) {
@@ -663,6 +781,32 @@ app.post('/admin/publish/deleteArticle', function(req, res) {
 			});
 		}
 	});
+});
+
+app.post('/publish/deleteAnnouncement', function (req, res) {
+    var id = req.body.id;
+    var title = req.body.title;
+    var key = id + '-' + title;
+
+    var sql = "DELETE FROM ?? WHERE Title = ? && idannouncements = ?";
+    sql = mysql.format(sql, [table4, title, id]);
+
+    connection.query(sql, function (error, results, fields) {
+        if (error) {
+            console.log(error);
+            return;
+        } else {
+            var bucket = config.s3.announceBucket;
+            s3.deleteObject(params = { Bucket: bucket, Key: key }, function (err, data) {
+                if (err) {
+                    console.log(err);
+                    res.status(500).send(err);
+                } else {
+                    res.sendStatus(200);
+                }
+            });
+        }
+    });
 });
 					
 

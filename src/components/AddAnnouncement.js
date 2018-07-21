@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Redirect } from 'react-router';
-import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { setRedirectUrl } from '../actions';
 
@@ -26,7 +25,6 @@ import imageStyles from '../styles/Image.css';
 import 'draft-js-image-plugin/lib/plugin.css';
 
 import MediaAdd from './MediaAdd.js';
-import ImageBar from './ImageBar.js';
 import PreviewPost from './PreviewPost.js';
 
 var env = process.env.NODE_ENV || 'development';
@@ -74,25 +72,20 @@ const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 const plugins = [focusPlugin, videoPlugin, toolbarPlugin, linkifyPlugin, imagePlugin, linkPlugin];
 const tabCharacter = "	";
 
-class AddPost extends React.Component {
+class AddAnnouncement extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             editorStateTitle: EditorState.createEmpty(),
             editorStateBody: EditorState.createEmpty(),
             title: '',
-            author: props.login ? props.username : 'Guest',
             preview: false,
             finishPublish: false,
             fetches: {},
             images: [],
-            articleTitle: props.title,
-            articleId: props.articleId,
-            postId: null
         };
         this.onChangeTitle = (editorStateTitle) => this.setState({ editorStateTitle });
         this.onChangeBody = (editorStateBody) => this.setState({ editorStateBody });
-        this.modifyImageBar = this.modifyImageBar.bind(this);
         this.handleTitleChange = this.handleTitleChange.bind(this);
         this.handleAuthorChange = this.handleAuthorChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -186,23 +179,10 @@ class AddPost extends React.Component {
         }
 
 
-        if (this.state.images.length > 0) {
-            for (var i = 0; i < this.state.images.length; i++) {
-                let imgBarRequest = this.uploadImgBar(this.state.images[i]);
-                promises.push(imgBarRequest);
-            }
-        }
-
-
         Promise.all(promises).then(() => {
-            var login = this.props.login;
-            var username = this.props.username;
-            var parentId = this.props.parentId;
-            var parentIsStart = this.props.start;
             var articleContentImg = this.state.editorStateBody.getCurrentContent();
-            var articleTitle = this.state.articleTitle;
             var articleRaw = convertToRaw(articleContentImg);
-            fetch(config.url + "/publish/addPost",
+            fetch(config.url + "/publish/addAnnouncement",
                {
                    method: 'post',
                    headers: {
@@ -210,12 +190,7 @@ class AddPost extends React.Component {
                    },
                    body: JSON.stringify({
                        title: title,
-                       articleTitle: articleTitle,
-                       parentId: parentId,
-                       author: username,
-                       article: articleRaw,
-                       parentIsStart: parentIsStart,
-                       login: login
+                       article: articleRaw
                    }),
                    credentials: 'include'
                })
@@ -228,48 +203,6 @@ class AddPost extends React.Component {
                    console.log(error);
                });
         });
-    }
-
-
-
-    uploadImgBar(image) {
-        const { title } = this.state;
-        var junkBlob = new Blob(['sup'], { type: 'text/plain' });
-        if (image.file) {
-            let localFile = new FormData();
-            localFile.append('file', image.file);
-            localFile.append('title', junkBlob, title);
-            localFile.append('imgBar', junkBlob);
-
-            return fetch(config.url + "/admin/publish/uploadLocalImage",
-                {
-                    method: 'post',
-                    body: localFile,
-                    credentials: 'include'
-                })
-                .then((response) => response.json())
-                .then((rs) => {
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        } else {
-            return fetch(config.url + "/admin/publish/uploadImage",
-                {
-                    method: 'post',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ url: image.original, title: title, imgBar: true }),
-                    credentials: 'include'
-                })
-                .then((response) => response.json())
-                .then((rs) => {
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
-        }
     }
 
     uploadDraftImage(key, entityObject, articleContent) {
@@ -358,16 +291,16 @@ class AddPost extends React.Component {
     }
 
     render() {
-        const { login, username } = this.props;
-        const { finishPublish, title, articleTitle, postId, articleId } = this.state;
+        const { login, admin } = this.props;
+        const { finishPublish, title, postId } = this.state;
 
-        const AuthorName = login ? username : "Guest";
+       
 
         if (!login) {
             //return <Redirect to={`admin`} />;
         }
         if (finishPublish) {
-            return <Redirect to={`/story/${articleTitle}/id=${articleId}/at=${title}/id=${postId}`} />;
+            return <Redirect to={`/announcement/${title}/id=${postId}`} />;
         }
 
         return (
@@ -377,7 +310,7 @@ class AddPost extends React.Component {
                         <PreviewPost
                             article={this.state.editorStateBody}
                             title={this.state.title}
-                            author={AuthorName}
+                            author={this.state.author}
                             images={this.state.images}
                         />
                         <div style={{ textAlign: 'left' }}>
@@ -386,105 +319,84 @@ class AddPost extends React.Component {
                     </div>
                 ) : (
                         <div>
-                            <div>
-                                <h1 style={{ borderTop: 'dotted', borderWidth: '2px', paddingTop: '10px' }}>Add Your Post</h1>
-                            </div>
+                            
 
-                            {!login ? (
-                                <div style={{ color: '#0338ff', paddingBottom: '15px' }}>
-                                    <span>You're currently not logged in. You'll still be able to post, but you won't
-                                        be able to track your contributions. Sign Up or Login </span>
-                                    <Link to="/login">here</Link>
-                                    <span>, or continue as a Guest.</span>
+                            {login && admin ? (
+                                <div>
+                                    <div>
+                                        <h1 style={{ borderTop: 'dotted', borderWidth: '2px', paddingTop: '10px' }}>Add Your Announcement</h1>
+                                    </div>
+                                    <form className={editorStyles.form} name="publish" id="publish" onSubmit={this.handleSubmit} >
+
+									    <input className={editorStyles.TitleInputBig}
+										    type="text"
+										    name="title"
+										    value={this.state.title}
+										    placeholder="Give your article a unique title..."
+										    onChange={this.handleTitleChange}
+										    required
+									    />
+									    <input className={editorStyles.TitleInputSmall}
+										    type="text"
+										    name="title"
+										    value={this.state.title}
+										    placeholder="Your title..."
+										    onChange={this.handleTitleChange}
+										    required
+									    />
+								    </form>
+
+								    <br />
+								    <br />
+
+								    <div className={editorStyles.buttons}>
+									    <button className={editorStyles.button} onClick={this._onBoldClick.bind(this)}>Bold</button>
+									    <button className={editorStyles.button} onClick={this._onItalicizeClick.bind(this)}>Italic</button>
+									    <button className={editorStyles.button} onClick={this._onVidClick.bind(this)}>Add Test Video</button>
+									    <button className={editorStyles.button} onClick={this._onImgClick.bind(this)}>Add Test Image</button>
+									    <MediaAdd
+										    editorState={this.state.editorStateBody}
+										    onChange={this.onChangeBody}
+										    modifier={imagePlugin.addImage}
+										    type="image"
+									    />
+									    <MediaAdd
+										    editorState={this.state.editorStateBody}
+										    onChange={this.onChangeBody}
+										    modifier={videoPlugin.addVideo}
+										    type="video"
+									    />
+								    </div>
+
+								    <div className={editorStyles.editor} >
+									    <Editor
+										    editorState={this.state.editorStateBody}
+										    handleKeyCommand={this.handleKeyCommand}
+										    handlePastedText={this.handlePastedText}
+										    onTab={this.onTab}
+										    blockRenderMap={extendedBlockRenderMap}
+										    onChange={this.onChangeBody}
+										    plugins={plugins}
+										    textAlign='left'
+										    //ref={(element) => { this.editor = element; }}
+										    placeholder='Write the rest of your article.....'
+									    />
+									    <Toolbar />
+								    </div>
+
+								    <div style={{ display: 'inline-block', float: 'right' }}>
+									    <div style={{ display: 'inline-block', paddingRight: '10px' }}>
+										    <button onClick={this._onPreviewClick.bind(this)}>Preview Article</button>
+									    </div>
+									    <div style={{ display: 'inline-block' }}>
+										    <input type="submit" value="Submit Article" form="publish" />
+									    </div>
+								    </div>
                                 </div>
                             ) : (
-                                    <div></div>
-                                )}
+                                <div></div>
+                            )}
 
-                            <form className={editorStyles.form} name="publish" id="publish" onSubmit={this.handleSubmit} >
-
-                                <input className={editorStyles.TitleInputBig}
-                                    type="text"
-                                    name="title"
-                                    value={this.state.title}
-                                    placeholder="Give your post a title..."
-                                    onChange={this.handleTitleChange}
-                                    required
-                                />
-                                <input className={editorStyles.TitleInputSmall}
-                                    type="text"
-                                    name="title"
-                                    value={this.state.title}
-                                    placeholder="Your title..."
-                                    onChange={this.handleTitleChange}
-                                    required
-                                />
-                                <div className={editorStyles.SubInfo}>
-                                    <div className={editorStyles.AuthorInput}>
-                                        {AuthorName}
-                                        {/*<input type="text"
-										name="author"
-										value={this.state.author}
-										placeholder="Write the author's name..."
-										onChange={this.handleAuthorChange}
-										required
-									/>*/}
-                                    </div>
-                                </div>
-                            </form>
-
-                            <div className={editorStyles.PictureSpace}>
-                                <div className={editorStyles.ImageBarAdd}>
-                                    <ImageBar
-                                        onChange={this.modifyImageBar}
-                                    />
-                                </div>
-                            </div>
-
-                            <br />
-                            <br />
-
-                            <div className={editorStyles.buttons}>
-                                <button className={editorStyles.button} onClick={this._onBoldClick.bind(this)}>Bold</button>
-                                <button className={editorStyles.button} onClick={this._onItalicizeClick.bind(this)}>Italic</button>
-                                <MediaAdd
-                                    editorState={this.state.editorStateBody}
-                                    onChange={this.onChangeBody}
-                                    modifier={imagePlugin.addImage}
-                                    type="image"
-                                />
-                                <MediaAdd
-                                    editorState={this.state.editorStateBody}
-                                    onChange={this.onChangeBody}
-                                    modifier={videoPlugin.addVideo}
-                                    type="video"
-                                />
-                            </div>
-
-                            <div className={editorStyles.editor} >
-                                <Editor
-                                    editorState={this.state.editorStateBody}
-                                    handleKeyCommand={this.handleKeyCommand}
-                                    handlePastedText={this.handlePastedText}
-                                    onTab={this.onTab}
-                                    blockRenderMap={extendedBlockRenderMap}
-                                    onChange={this.onChangeBody}
-                                    plugins={plugins}
-                                    textAlign='left'
-                                    //ref={(element) => { this.editor = element; }}
-                                    placeholder='Write the rest of your article.....'
-                                />
-                                <Toolbar />
-                            </div>
-
-                            <div style={{ display: 'inline-block', float: 'right' }}>
-                                <div style={{ display: 'inline-block', paddingRight: '10px' }}>
-                                    <button onClick={this._onPreviewClick.bind(this)}>Preview Post</button>
-                                </div>
-                                <div style={{ display: 'inline-block' }}>
-                                    <input type="submit" value="Submit Post" form="publish" />
-                                </div>
-                            </div>
                         </div>
                     )}
             </div>
@@ -496,7 +408,7 @@ class AddPost extends React.Component {
 const mapStateToProps = (state, ownProps) => {
     return {
         login: state.user.login,
-        username: state.user.username,
+        admin: state.user.admin,
         //currentURL: ownProps.location.pathname
     }
 }
@@ -504,4 +416,4 @@ const mapStateToProps = (state, ownProps) => {
 
 
 
-export default connect(mapStateToProps)(AddPost)
+export default connect(mapStateToProps)(AddAnnouncement)

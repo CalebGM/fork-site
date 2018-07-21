@@ -61,22 +61,24 @@ class Author extends React.Component {
         const { author } = this.state;
 		return (
             <DocumentTitle title={author + ' - Collaboration Treehouse'}>
-			    <div className={CategoryStyles.articleList}>
-				    {this.state.articles ? (
-					    this.state.articles.map(article => (
-						    <div key={article.idArticles}>
-							    <QuickArticleDisplay  article={article} />
-						    </div>
-					    ))
-				    ) : (
-					    <div></div>
-				    )}
-			    </div>
-			    <div>
-				    <Link className={CategoryStyles.link} to={`/auth/${this.state.author}/page=${this.state.nextPage}`}>
-					    Next Page
-				    </Link>
-			    </div>
+                <div>
+			        <div className={CategoryStyles.articleList}>
+				        {this.state.articles ? (
+					        this.state.articles.map(article => (
+						        <div key={article.idArticles}>
+							        <QuickArticleDisplay  article={article} />
+						        </div>
+					        ))
+				        ) : (
+					        <div></div>
+				        )}
+			        </div>
+			        <div>
+				        <Link className={CategoryStyles.link} to={`/auth/${this.state.author}/page=${this.state.nextPage}`}>
+					        Next Page
+				        </Link>
+                        </div>
+                </div>
 		    </DocumentTitle>
 		);
 	}

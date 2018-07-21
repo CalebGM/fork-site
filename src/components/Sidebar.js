@@ -72,7 +72,7 @@ class Sidebar extends React.Component {
 	
 	render() {
         const { login, user } = this.props;
-        console.log(login);
+
 		return (
 			<div className={SidebarStyles.Container}>
 				{config.categories.map(cat => {
@@ -85,7 +85,8 @@ class Sidebar extends React.Component {
 					)
 				})}
 				
-				<Link className={SidebarStyles.Links} to="/about">About Us</Link>
+                <Link className={SidebarStyles.Links} to="/about">About Us</Link>
+                <Link className={SidebarStyles.Links} to="/announcements/page=1">Announcements</Link>
 				
 				{login ? (
 					<div className={SidebarStyles.Admin}>

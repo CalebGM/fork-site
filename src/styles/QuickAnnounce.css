@@ -1,0 +1,149 @@
+.Article {
+    width: 100%;
+    max-width: 610px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    height: 70px;
+    display: flex;
+    background-color: white;
+}
+
+
+
+    .Article:nth-of-type(odd) {
+        border-top: thin solid lightgrey;
+        border-bottom: thin solid lightgrey;
+    }
+
+    .Article:nth-of-type(even) {
+        border-top: thin solid lightgrey;
+        border-bottom: thin solid lightgrey;
+    }
+
+.ImgContainer {
+    min-width: 33.3%;
+    width: 33.3%;
+    margin-left: 15px;
+    height: 95%;
+}
+
+    .ImgContainer > a > img {
+        height: 100%;
+    }
+
+.InfoContainer {
+    width: 66.7%;
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: 4px;
+    position: relative;
+    align-content: flex-start;
+}
+
+
+.Title {
+    text-transform: capitalize;
+    font-family: Oswald, sans-serif;
+    font-size: 25px;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+}
+
+
+
+.SubInfo {
+    width: 98%;
+    font-size: 0.8em;
+}
+
+
+.Author {
+}
+
+    .Author:before {
+        content: 'By:  ';
+    }
+
+.Categories {
+    width: 100%;
+    height: 32px;
+    font-size: 0.8em;
+}
+
+.CatList {
+    width: 100%;
+    height: 32.5px;
+    overflow: auto;
+    text-overflow: ellipsis;
+    margin: 0;
+    padding: 0;
+}
+
+
+.Category:after {
+    content: ' - ';
+}
+
+.Category:last-child:after {
+    content: '';
+}
+
+
+
+.Category {
+    display: inline;
+}
+
+.Created {
+}
+
+
+
+.TitleLink {
+    text-decoration: none;
+    color: black;
+}
+
+.CatLink {
+    text-decoration: none;
+    color: blue;
+}
+
+.AuthorLink {
+    text-decoration: none;
+    color: steelblue;
+}
+
+
+@media screen and (max-width: 475px) {
+    .Title {
+        font-size: 1.2em;
+        max-height: 56px;
+    }
+
+    .SubInfo {
+        font-size: 0.7em;
+    }
+
+    .Article {
+        height: 60px;
+    }
+
+    .Author {
+        padding-right: 2px;
+    }
+}
+
+@media screen and (max-width: 400px) {
+    .ImgContainer {
+        min-width: unset;
+        width: auto;
+        padding-right: 5px;
+    }
+}

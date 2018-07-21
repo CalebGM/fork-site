@@ -106,6 +106,7 @@ class Posts extends React.Component {
         console.log(this.props);
         window.twttr.widgets.load();
         this.fetchPost();
+        this.fetchChildren();
     }
 
     componentWillReceiveProps(nextProps) {
@@ -179,7 +180,7 @@ class Posts extends React.Component {
 
 
     fetchChildren() {
-        console.log('child');
+
         fetch(config.url + '/getChildPosts',
             {
                 method: 'post',
@@ -192,7 +193,7 @@ class Posts extends React.Component {
             .then((response) => response.json())
             .then((rs) => {
                 console.log(rs);
-                this.setState({ childPosts: rs.info, showNext: true });
+                this.setState({ childPosts: rs.info });
             })
     }
 
@@ -481,7 +482,7 @@ class Posts extends React.Component {
                                         className={ArticleStyles.ChildButton} 
                                         onClick={this.showNext.bind(this)}
                                         >
-                                        Show Next
+                                        Show Next ({childPosts.length})
                                     </button>
                                 )}
                             </div>

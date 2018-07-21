@@ -73,7 +73,8 @@ const plugins = [focusPlugin, videoPlugin, linkifyPlugin, imagePlugin, linkPlugi
 
 class Article extends React.Component {
 	constructor(props) {
-		super(props);
+        super(props);
+        console.log(props.mounted);
 		this.state = { article: EditorState.createEmpty(),
 						ogArticle: EditorState.createEmpty(),
                         title: props.title,
@@ -89,7 +90,7 @@ class Article extends React.Component {
                         addPost: false,
                         finished: false,
                         showNext: false,
-                        unmounted: props.mounted,
+                        unmounted: !props.mounted,
                         shareFull: false,
                         mobileShowOptions: false,
                         articleUrl: encodeURI("https://collaborationtreehouse.com/story/" + props.title + "/id=" + props.id),
@@ -101,8 +102,11 @@ class Article extends React.Component {
 	}
 	
     componentDidMount() {
-        window.twttr.widgets.load();
-		this.fetchArticle();
+        window.twttr.widgets.load()
+        if (!this.state.unmounted) {
+            this.fetchArticle();
+            this.fetchChildren();
+        }
 	}
 	
     componentWillReceiveProps(nextProps) {
@@ -193,7 +197,7 @@ class Article extends React.Component {
             })
             .then((response) => response.json())
             .then((rs) => {
-                this.setState({ childPosts: rs.info, showNext: true });
+                this.setState({ childPosts: rs.info });
             })
     }
 	
@@ -363,6 +367,7 @@ class Article extends React.Component {
 							categories={categories}
 							created={created}
 							images={images}
+                            id={id}
 							onCancel={this.onCancel}
 							onPublish={this.onPublish}
 							
@@ -501,7 +506,7 @@ class Article extends React.Component {
                                         className={ArticleStyles.ChildButton} 
                                         onClick={this.showNext.bind(this)}
                                         >
-                                        Show Next
+                                        Show Next ({childPosts.length})
                                     </button>
                                 )}
                             </div>

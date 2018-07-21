@@ -91,6 +91,7 @@ class EditArticle extends React.Component {
 						ogTitle: props.title,
 						title: props.title,
 						author: props.author,
+                        id: props.id,
 						category: category,
 						logoImg: { original: config.baseUrl + props.title + '/logo' },
 						images: props.images,
@@ -429,7 +430,7 @@ class EditArticle extends React.Component {
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ key: this.state.ogTitle }),
+				body: JSON.stringify({ key: this.state.ogTitle, id: this.state.id }),
 				credentials: 'include'
 			})
 				.then((response) => {

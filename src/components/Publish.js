@@ -182,7 +182,6 @@ class Publish extends React.Component {
 			
 			var cats = formData.getAll('cat');
 			var title = formData.get('title');
-			var author = formData.get('author');
 			var firstBlock = articleContent.getFirstBlock();
 			var nextBlock = articleContent.getBlockAfter(firstBlock.key);
 			
@@ -460,7 +459,7 @@ class Publish extends React.Component {
 							article={this.state.editorStateBody}
 							title={this.state.title}
 							categories={this.state.category}
-							author={this.state.author}
+							author={AuthorName}
 							images={this.state.images}
 						/>
 						<div style={{textAlign: 'left'}}>

@@ -1,0 +1,63 @@
+﻿.Bar {
+    display: flex;
+    justify-content: center;
+    padding-top: 30px;
+}
+
+.Link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: blue;
+    width: 50%;
+    height: 70px;
+    border-radius: 5px;
+    text-decoration: none;
+    border: 2px grey solid;
+    font-size: 1.1em;
+}
+
+.Date {
+    width: 30%;
+    text-align: center;
+}
+.Date:after {
+    content: ' - ';
+}
+
+.Title {
+    width: 70%;
+}
+
+
+
+@media screen and (min-width: 476px) and (max-width: 700px) {
+    .Link {
+        width: 75%;
+    }
+}
+
+@media screen and (min-width: 426px) and (max-width: 475px) {
+    .Link {
+        width: 80%;
+        font-size: 1.0em;
+    }
+}
+
+@media screen and (max-width: 425px) {
+    .Date {
+        width: 100%;
+    }
+    .Date:after {
+        content: none;
+    }
+    .Title {
+        width: 100%;
+        text-align: center;
+    }
+    .Link {
+        width: 80%;
+        display: block;
+        font-size: 1.0em;
+    }
+}

@@ -29,15 +29,14 @@ class Story extends React.Component {
     componentDidMount() {
         const { dispatch } = this.props;
 
-        if (this.props.match.params.postId) {
+        if (this.state.showFull && this.props.match.params.postId) {
+            this.fetchPosts(this.props.match.params.postId);
+        } else if (this.props.match.params.postId) {
             var newPostTitle = this.props.match.params.post;
             var newPostId = this.props.match.params.postId;
             var newPost = [{ idposts: newPostId, Article: this.state.article, Title: newPostTitle }];
             console.log('hi');
             dispatch(modifyStory(newPost));
-        }
-        if (this.state.showFull && this.props.match.params.postId) {
-            this.fetchPosts(this.props.match.params.postId);
         }
 
     }
@@ -51,12 +50,15 @@ class Story extends React.Component {
             var newPostId = nextProps.match.params.postId;
             
             var newPost = [{ idposts: newPostId, Article: this.state.article, Title: newPostTitle }];
-            dispatch(modifyStory(newPost));
+            
+            if ((nextProps.match.params.showFull === "showFull") && nextProps.match.params.postId) {
+                this.fetchPosts(nextProps.match.params.postId);
+            } else {
+                dispatch(modifyStory(newPost));
+            }
         }
 
-        if ((nextProps.match.params.showFull === "showFull") && nextProps.match.params.postId) {
-            this.fetchPosts(nextProps.match.params.postId);
-        }
+
     }
 
     componentWillUnmount() {
@@ -154,7 +156,7 @@ class Story extends React.Component {
     render() {
         const { posts } = this.props;
         const { article, articleId, showFull, onMobile, postId } = this.state;
-        const renderStart = (!posts.length || showFull || !postId);
+        const renderStart = (showFull || !postId);
         //console.log(renderStart);
         console.log(posts);
 

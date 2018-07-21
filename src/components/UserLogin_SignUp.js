@@ -6,8 +6,8 @@ import { login, adminLogin, nullRedirect } from '../actions';
 import { signUpUser, signInUser, retrieveUserFromLocalStorage } from '../api/Cognito.js';
 import Admin from '../styles/AdminLogin.css';
 
-var env = process.env.NODE_ENV || 'development';
-var config = require('../config.js')[env];
+//var env = process.env.NODE_ENV || 'development';
+//var config = require('../config.js')[env];
 
 class UserLogin_SignUp extends React.Component {
 	constructor(props) {
@@ -78,7 +78,7 @@ class UserLogin_SignUp extends React.Component {
                 if (redirectUrl) {
                     dispatch(nullRedirect());
                 }
-                if (userObj.group == 'Admin') {
+                if (userObj.group === 'Admins') {
                     dispatch(adminLogin());
                 }
             })

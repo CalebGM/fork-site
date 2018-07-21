@@ -10,7 +10,7 @@
 }
 
 .Entry:nth-of-type(odd) {
-    background-color: #d4d4d4b5;
+    background-color: #eaeaeab5;
 }
 
 .Entry:nth-of-type(even) {
@@ -74,7 +74,7 @@
     display: flex;
 }
 
-.ShareButtons > iframe{
+.ShareButtons iframe{
     padding-right: 2px;
 }
 
@@ -290,13 +290,14 @@
     .ShareTabs {
         padding-bottom: 3px;
     }
-    .ShareTabs > button {
+    .ShareTabs button {
         padding: 1px;
         width: 40px;
         font-size: 11px;
     }
-    .ShareButtons > iframe[style] {
+    .ShareButtons iframe[style] {
         width: 23px !important;
+        min-width: 23px !important;
         border-radius: 5px;
         margin-right: 2px;
     }
@@ -308,6 +309,9 @@
     .CopyLinkSmall {
         display: block;
         font-size: 10px;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
     }
 }
 
@@ -331,14 +335,15 @@
         padding-bottom: 3px;
     }
 
-    .ShareTabs > button {
+    .ShareTabs button {
         padding: 1px;
         width: 50px;
         font-size: 11px;
     }
 
-    .ShareButtons > iframe[style] {
+    .ShareButtons iframe[style] {
         width: 23px !important;
+        min-width: 23px !important;
         border-radius: 5px;
         margin-right: 3px;
     }
