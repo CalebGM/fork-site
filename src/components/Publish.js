@@ -90,7 +90,7 @@ class Publish extends React.Component {
 						fetches: {},
 						logoImg: null,
                         images: [],
-                        articleId: null
+                        id: null
 					};
 		this.onChangeTitle = (editorStateTitle) => this.setState({editorStateTitle});
 		this.onChangeBody = (editorStateBody) => this.setState({editorStateBody});
@@ -198,68 +198,68 @@ class Publish extends React.Component {
 				nextBlock = articleContent.getBlockAfter(nextBlock.key);
 			}
 			
-			
-			var fetches = this.state.fetches;
-			var promises = [];
-			for (var key in fetches) {
-				let request = this.uploadDraftImage(key, fetches, articleContent);
-				promises.push(request);
-			}
-			
-			if (this.state.logoImg) {
-				var logoImgRequest = this.uploadLogoImage();
-				promises.push(logoImgRequest);
-			}
-			
-			if (this.state.images.length > 0) {
-				for (var i = 0; i < this.state.images.length; i++) {
-					let imgBarRequest = this.uploadImgBar(this.state.images[i]);
-					promises.push(imgBarRequest);
-				}
-			}
-			
-			
-            Promise.all(promises).then(() => {
-                var login = this.props.login;
-                var username = this.props.username;
-				var articleContentImg = this.state.editorStateBody.getCurrentContent();
-				var articleRaw = convertToRaw(articleContentImg);
-				fetch(config.url + "/admin/publish/postArticle",
-				{
-					method: 'post',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-                    body: JSON.stringify({
-                        categories: cats,
-                        title: title,
-                        author: username,
-                        article: articleRaw,
-                        login: login
-                    }),
-					credentials: 'include'
-				})
-                    .then((response) => response.json())
-                    .then((rs) => {
-                        console.log(rs);
-						this.setState({ finishPublish: true, articleId: rs.articleId });
-					})
-					.catch((error) => {
-						console.log(error);
-					});
-			});
+            this.getNextId(cats).then(() => {
+                var fetches = this.state.fetches;
+                var promises = [];
+                for (var key in fetches) {
+                    let request = this.uploadDraftImage(key, fetches, articleContent);
+                    promises.push(request);
+                }
+
+                if (this.state.logoImg) {
+                    console.log(this.state.logoImg);
+                    var logoImgRequest = this.uploadLogoImage();
+                    promises.push(logoImgRequest);
+                }
+
+                if (this.state.images.length > 0) {
+                    for (var i = 0; i < this.state.images.length; i++) {
+                        let imgBarRequest = this.uploadImgBar(this.state.images[i]);
+                        promises.push(imgBarRequest);
+                    }
+                }
+
+
+                Promise.all(promises).then(() => {
+                    var articleContentImg = this.state.editorStateBody.getCurrentContent();
+                    var articleRaw = convertToRaw(articleContentImg);
+                    fetch(config.url + "/publish/addContent",
+                        {
+                            method: 'post',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                id: this.state.id,
+                                title: this.state.title,
+                                content: articleRaw,
+                                source: "Article"
+                            }),
+                            credentials: 'include'
+                        })
+                        .then((response) => {
+                            this.setState({ finishPublish: true });
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                        });
+                });
+            })
+
 		}
 	}
 	
 	uploadLogoImage() {
-		const { logoImg, title } = this.state;
+		const { logoImg, title, id } = this.state;
 		var junkBlob = new Blob(['sup'], {type: 'text/plain'});
 		
 		if (logoImg.file) {
 			let localFile = new FormData();
 			localFile.append('file', logoImg.file, 'logo');
-			localFile.append('title', junkBlob, title);
-			localFile.append('logo', junkBlob);
+            localFile.append('title', junkBlob, title);
+            localFile.append('id', junkBlob, id);
+            localFile.append('logo', junkBlob);
+            localFile.append('article', junkBlob);
 			
 			return fetch(config.url + "/admin/publish/uploadLocalImage",
 				{
@@ -280,7 +280,7 @@ class Publish extends React.Component {
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ url: logoImg.original, title: title, logo: true }),
+				body: JSON.stringify({ url: logoImg.original, title: title, id: id, logo: true, article: true }),
 				credentials: 'include'
 			})
 				.then((response) => response.json())
@@ -292,94 +292,132 @@ class Publish extends React.Component {
 		}
 	}
 	
-	uploadImgBar(image) {
-		const { title } = this.state;
-		var junkBlob = new Blob(['sup'], {type: 'text/plain'});
-		if (image.file) {
-			let localFile = new FormData();
-			localFile.append('file', image.file);
-			localFile.append('title', junkBlob, title);
-			localFile.append('imgBar', junkBlob);
-			
-			return fetch(config.url + "/admin/publish/uploadLocalImage",
-				{
-					method: 'post',
-					body: localFile,
-					credentials: 'include'
-				})
-					.then((response) => response.json())
-					.then((rs) => {
-					})
-					.catch((error) => {
-						console.log(error);
-					});
-		} else {
-			return fetch(config.url + "/admin/publish/uploadImage",
-			{
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ url: image.original, title: title, imgBar: true }),
-				credentials: 'include'
-			})
-				.then((response) => response.json())
-				.then((rs) => {
-				})
-				.catch((error) => {
-					console.log(error);
-				});
-		}
-	}
-	
-	uploadDraftImage(key, entityObject, articleContent) {
-		let entity = entityObject[key];
-		let oldUrl = entity.data.src;
-		var junkBlob = new Blob(['sup'], {type: 'text/plain'});
-		if (entity.data.file) {
-			let localFile = new FormData();
-			localFile.append('file', entity.data.file);
-			localFile.append('title', junkBlob, this.state.title);
-			localFile.append('draft', junkBlob);
-				
-			return fetch(config.url + "/admin/publish/uploadLocalImage",
-			{
-				method: 'post',
-				body: localFile,
-				credentials: 'include'
-			})
-				.then((response) => response.json())
-				.then((rs) => {
-					articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
-					let newArticle = EditorState.createWithContent(articleContent);
-		
-					this.setState({ editorStateBody: newArticle });
-				})
-				.catch((error) => {
-					console.log(error);
-				});
-		} else {
-			return fetch(config.url + "/admin/publish/uploadImage",
-			{
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ url: oldUrl, title: this.state.title, draft: true }),
-				credentials: 'include'
-			})
-				.then((response) => response.json())
-				.then((rs) => {
-					articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
-					let newArticle = EditorState.createWithContent(articleContent);
-		
-					this.setState({ editorStateBody: newArticle });
-				})
-				.catch((error) => {
-					console.log(error);
-				});
-		}
-	}
+
+    uploadImgBar(image) {
+        const { title, id } = this.state;
+        var junkBlob = new Blob(['sup'], { type: 'text/plain' });
+        if (image.file) {
+            let localFile = new FormData();
+            localFile.append('file', image.file);
+            localFile.append('title', junkBlob, title);
+            localFile.append('id', junkBlob, id);
+            localFile.append('imgBar', junkBlob);
+            localFile.append('article', junkBlob);
+
+            return fetch(config.url + "/admin/publish/uploadLocalImage",
+                {
+                    method: 'post',
+                    body: localFile,
+                    credentials: 'include'
+                })
+                .then((response) => response.json())
+                .then((rs) => {
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        } else {
+            return fetch(config.url + "/admin/publish/uploadImage",
+                {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: image.original, title: title, id: id, imgBar: true, article: true }),
+                    credentials: 'include'
+                })
+                .then((response) => response.json())
+                .then((rs) => {
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
+    }
+
+    uploadDraftImage(key, entityObject, articleContent) {
+        const { title, id } = this.state;
+        let entity = entityObject[key];
+        let oldUrl = entity.data.src;
+        var junkBlob = new Blob(['sup'], { type: 'text/plain' });
+        if (entity.data.file) {
+            let localFile = new FormData();
+            localFile.append('file', entity.data.file);
+            localFile.append('title', junkBlob, title);
+            localFile.append('id', junkBlob, id);
+            localFile.append('draft', junkBlob);
+            localFile.append('article', junkBlob);
+
+            return fetch(config.url + "/admin/publish/uploadLocalImage",
+                {
+                    method: 'post',
+                    body: localFile,
+                    credentials: 'include'
+                })
+                .then((response) => response.json())
+                .then((rs) => {
+                    articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
+                    let newArticle = EditorState.createWithContent(articleContent);
+
+                    this.setState({ editorStateBody: newArticle });
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        } else {
+            return fetch(config.url + "/admin/publish/uploadImage",
+                {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: oldUrl, title: title, id: id, draft: true, article: true }),
+                    credentials: 'include'
+                })
+                .then((response) => response.json())
+                .then((rs) => {
+                    articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
+                    let newArticle = EditorState.createWithContent(articleContent);
+
+                    this.setState({ editorStateBody: newArticle });
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
+    }
+
+
+    getNextId(cats) {
+        const { title } = this.state;
+        var login = this.props.login;
+        var username = this.props.username;
+
+        return fetch(config.url + "/publish/addSql",
+            {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    categories: cats,
+                    title: title,
+                    author: username,
+                    login: login,
+                    source: "Article"
+                }),
+                credentials: 'include'
+            })
+            .then((response) => response.json())
+            .then((rs) => {
+                console.log(rs);
+                this.setState({ id: rs.id });
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+
+    }
 	
 	
 	createCheckbox(label) {
@@ -439,7 +477,7 @@ class Publish extends React.Component {
 	
 	render() {
 		const { login, username } = this.props;
-        const { finishPublish, title, articleId } = this.state;
+        const { finishPublish, title, id } = this.state;
 
         const AuthorName = login ? username : "Guest";
 		
@@ -447,7 +485,7 @@ class Publish extends React.Component {
 			//return <Redirect to={`admin`} />;
         }
         if (finishPublish) {
-            return <Redirect to={`/story/${title}/id=${articleId}`} />;
+            return <Redirect to={`/story/${title}/id=${id}`} />;
 		}
 		
         return (

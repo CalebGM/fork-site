@@ -124,17 +124,18 @@ class Article extends React.Component {
     }
 	
     fetchArticle() {
-		fetch(config.url + "/getArticle",
+		fetch(config.url + "/getContent",
 		{
 			method: 'post',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({ title: this.state.title, id: this.state.id }),
+			body: JSON.stringify({ title: this.state.title, id: this.state.id, source: "Article" }),
 			credentials: 'include'
 		})
 			.then((response) => response.json())
-			.then((rs) => {
+            .then((rs) => {
+                console.log(rs);
 				var cookedContent = convertFromRaw(JSON.parse(rs.body));
 				var selArticle = EditorState.createWithContent(cookedContent);
 				var articleInfo = rs.info[0];
@@ -169,7 +170,7 @@ class Article extends React.Component {
 			headers: {
 				'Content-Type': 'application/json'
 			},
-            body: JSON.stringify({ title: this.state.title, id: this.state.id }),
+            body: JSON.stringify({ title: this.state.title, id: this.state.id, source: "Article" }),
 			credentials: 'include'
 		})
 			.then((response) => response.json())

@@ -103,13 +103,13 @@ class Announcement extends React.Component {
 
 
     fetchAnnouncement() {
-        fetch(config.url + "/getAnnouncement",
+        fetch(config.url + "/getContent",
             {
                 method: 'post',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ id: this.state.id, title: this.state.title }),
+                body: JSON.stringify({ id: this.state.id, title: this.state.title, source: "Announcement" }),
                 credentials: 'include'
             })
             .then((response) => response.json())
@@ -185,13 +185,13 @@ class Announcement extends React.Component {
     _onDeleteClick() {
         var result = window.confirm("Are you sure you want to delete this article?");
         if (result) {
-            fetch(config.url + "/publish/deleteAnnouncement",
+            fetch(config.url + "/admin/publish/deleteContent",
                 {
                     method: 'post',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ title: this.state.title, id: this.state.id }),
+                    body: JSON.stringify({ title: this.state.title, id: this.state.id, source: "Announcement" }),
                     credentials: 'include'
                 })
                 .then((response) => {

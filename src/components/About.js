@@ -28,10 +28,10 @@ var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
 
 
-
 const linkPlugin = createLinkPlugin({
 	component: (props) => {
-		const { contentState, ...rest} = props;
+        const { contentState, ...rest } = props;
+        console.log(props);
 		// jsx-a11y/anchor-has-content
 		return (<a {...rest} target="_blank"/>);
 	}
@@ -39,11 +39,9 @@ const linkPlugin = createLinkPlugin({
 const linkifyPlugin = createLinkifyPlugin({
 	component: (props) => {
 		const { contentState, ...rest} = props;
-		
-		return (
-			// jsx-a11y/anchor-has-content
-			<a {...rest} target="_blank"/>
-		);
+        console.log(props);
+		// jsx-a11y/anchor-has-content
+		return (<a {...rest} target="_blank"/>);
 	}
 });
 const imagePlugin = createImagePlugin({ theme: imageStyles });
@@ -75,7 +73,7 @@ class About extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = { body: EditorState.createEmpty(), inEdit: false };
-		this.onChange = (article) => this.setState({article});
+		this.onChange = (body) => this.setState({body});
 		this.onCancel = this.onCancel.bind(this);
 		this.onPublish = this.onPublish.bind(this);
 	}
@@ -142,9 +140,9 @@ class About extends React.Component {
 						<div className={aboutStyles.Body} >
 							<Editor
 								editorState={body}
+                                onChange={this.onChange}
 								plugins={plugins}
 								blockRenderMap={extendedBlockRenderMap}
-								onChange={this.onChange}
 								readOnly
 							/>
 						</div>

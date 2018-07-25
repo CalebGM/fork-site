@@ -85,15 +85,16 @@ class EditArticle extends React.Component {
 		if (category.has('Fashion_Kicks')) {
 			category.delete('Fashion_Kicks');
 			category.add('Fashion/Kicks');
-		}
-		
+        }
+
+        
 		this.state = {editorStateBody: props.article,
 						ogTitle: props.title,
 						title: props.title,
 						author: props.author,
                         id: props.id,
 						category: category,
-						logoImg: { original: config.baseUrl + props.title + '/logo' },
+						logoImg: { original: config.articleUrl + props.title + '/logo' },
 						images: props.images,
 						preview: false,
 						finishPublish: false,
@@ -181,7 +182,8 @@ class EditArticle extends React.Component {
 			var formData = new FormData(myForm);
 			var articleContent = this.state.editorStateBody.getCurrentContent();
 			
-			var ogTitle = this.state.ogTitle;
+            var ogTitle = this.state.ogTitle;
+            var id = this.state.id;
 			var cats = formData.getAll('cat');
 			var title = formData.get('title');
 			var author = formData.get('author');
@@ -193,7 +195,7 @@ class EditArticle extends React.Component {
 				if (key) {
 					let entity = articleContent.getEntity(key);
 					if (entity.type === "image") {
-						let uploadUrl = "https://s3-us-west-2.amazonaws.com/ata-media/media";
+						let uploadUrl = config.articleUrl + id + '-' + title + "/artmedia";
 						let imageUrl = entity.data.src;
 						let imageBaseUrl = imageUrl.substring(0, imageUrl.lastIndexOf('/'));
 						
@@ -215,24 +217,48 @@ class EditArticle extends React.Component {
 				promises.push(request);
 			}
 			
-			var logoImgRequest = this.uploadLogoImage();
-			promises.push(logoImgRequest);
+            if (this.state.logoImg) {
+                var logoImgRequest = this.uploadLogoImage();
+                promises.push(logoImgRequest);
+            }
 			
-			if (this.state.images.length > 0) {
-				var imgBarRequest = this.uploadImgBar();
-				promises.push(imgBarRequest);
-			}
+            if (this.state.images.length > 0) {
+                for (var i = 0; i < this.state.images.length; i++) {
+                    let imgBarRequest = this.uploadImgBar(this.state.images[i]);
+                    promises.push(imgBarRequest);
+                }
+            }
 			
 			Promise.all(promises).then(() => {
 				var articleContentImg = this.state.editorStateBody.getCurrentContent();
-				var articleRaw = convertToRaw(articleContentImg);
-				fetch(config.url + "/admin/publish/updateArticle",
+                var articleRaw = convertToRaw(articleContentImg);
+                var imageKeys = [];
+                for (var i = 0; i < this.state.images.length; i++) {
+                    if (this.state.images[i].file) {
+                        imageKeys.push(id + '-' + title + '/media/' + this.state.images[i].file.name)
+                    } else {
+                        let imageSplit = this.state.images[i].original.split('/');
+                        let imgFileName = id + '-' + title + '/media/' + imageSplit[imageSplit.length - 1];
+                        imageKeys.push(imgFileName);
+                    }
+                }
+				fetch(config.url + "/admin/publish/updateContent",
 				{
 					method: 'post',
 					headers: {
 						'Content-Type': 'application/json'
 					},
-					body: JSON.stringify({ categories: cats, title: title, ogTitle: ogTitle, author: author, article: articleRaw }),
+                    body: JSON.stringify({
+                        categories: cats,
+                        title: title,
+                        id: id,
+                        ogTitle: ogTitle,
+                        author: author,
+                        content: articleRaw,
+                        source: "Article",
+                        imgBar: imageKeys
+
+                    }),
 					credentials: 'include'
 				})
 					.then((response) => {
@@ -246,138 +272,152 @@ class EditArticle extends React.Component {
 	}
 	
 	
-	uploadLogoImage() {
-		const { logoImg, title } = this.state;
-		var junkBlob = new Blob(['sup'], {type: 'text/plain'});
-		
-		if (logoImg.file) {
-			let localFile = new FormData();
-			localFile.append('file', logoImg.file, 'logo');
-			localFile.append('title', junkBlob, title);
-			localFile.append('logo', junkBlob);
-			
-			return fetch(config.url + "/admin/publish/uploadLocalImage",
-				{
-					method: 'post',
-					body: localFile,
-					credentials: 'include'
-				})
-					.then((response) => response.json())
-					.then((rs) => {
-					})
-					.catch((error) => {
-						console.log(error);
-					});
-		} else {
-			return fetch(config.url + "/admin/publish/uploadImage",
-			{
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ url: logoImg.original, title: title, logo: true }),
-				credentials: 'include'
-			})
-				.then((response) => response.json())
-				.then((rs) => {
-				})
-				.catch((error) => {
-					console.log(error);
-				});
-		}
-	}
-	
-	uploadImgBar() {
-		const { images, title } = this.state;
-		var junkBlob = new Blob(['sup'], {type: 'text/plain'});
-		for (var i = 0; i < images.length; i++) {
-			if (images[i].file) {
-				let localFile = new FormData();
-				localFile.append('file', images[i].file);
-				localFile.append('title', junkBlob, title);
-				localFile.append('imgBar', junkBlob);
-				
-				return fetch(config.url + "/admin/publish/uploadLocalImage",
-					{
-						method: 'post',
-						body: localFile,
-						credentials: 'include'
-					})
-						.then((response) => response.json())
-						.then((rs) => {
-						})
-						.catch((error) => {
-							console.log(error);
-						});
-			} else {
-				return fetch(config.url + "/admin/publish/uploadImage",
-				{
-					method: 'post',
-					headers: {
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({ url: images[i].original, title: title, imgBar: true }),
-					credentials: 'include'
-				})
-					.then((response) => response.json())
-					.then((rs) => {
-					})
-					.catch((error) => {
-						console.log(error);
-					});
-			}
-		}
-	}	
-	
-	uploadDraftImage(key, entityObject, articleContent) {
-		let entity = entityObject[key];
-		let oldUrl = entity.data.src;
-		var junkBlob = new Blob(['sup'], {type: 'text/plain'});
-		if (entity.data.file) {
-			let localFile = new FormData();
-			localFile.append('file', entity.data.file);
-			localFile.append('title', junkBlob, this.state.title);
-			localFile.append('draft', junkBlob);
-			
-				
-			return fetch(config.url + "/admin/publish/uploadLocalImage",
-			{
-				method: 'post',
-				body: localFile,
-				credentials: 'include'
-			})
-				.then((response) => response.json())
-				.then((rs) => {
-					articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
-					let newArticle = EditorState.createWithContent(articleContent);
-		
-					this.setState({ editorStateBody: newArticle });
-				})
-				.catch((error) => {
-					console.log(error);
-				});
-		} else {
-			return fetch(config.url + "/admin/publish/uploadImage",
-			{
-				method: 'post',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ url: oldUrl, title: this.state.title, draft: true }),
-				credentials: 'include'
-			})
-				.then((response) => response.json())
-				.then((rs) => {
-					articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
-					let newArticle = EditorState.createWithContent(articleContent);
-		
-					this.setState({ editorStateBody: newArticle });
-				})
-				.catch((error) => {
-					console.log(error);
-				});
-		}
-	}
+    uploadLogoImage() {
+        const { logoImg, title, id } = this.state;
+        var junkBlob = new Blob(['sup'], { type: 'text/plain' });
+
+        if (logoImg.file) {
+            let localFile = new FormData();
+            localFile.append('file', logoImg.file, 'logo');
+            localFile.append('title', junkBlob, title);
+            localFile.append('id', junkBlob, id);
+            localFile.append('logo', junkBlob);
+            localFile.append('article', junkBlob);
+
+            return fetch(config.url + "/admin/publish/uploadLocalImage",
+                {
+                    method: 'post',
+                    body: localFile,
+                    credentials: 'include'
+                })
+                .then((response) => response.json())
+                .then((rs) => {
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        } else {
+            return fetch(config.url + "/admin/publish/uploadImage",
+                {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: logoImg.original, title: title, id: id, logo: true, source: "Article" }),
+                    credentials: 'include'
+                })
+                .then((response) => response.json())
+                .then((rs) => {
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
+    }
+
+
+    uploadImgBar(image) {
+        const { title, id } = this.state;
+        var junkBlob = new Blob(['sup'], { type: 'text/plain' });
+        if (image.file) {
+            let localFile = new FormData();
+            localFile.append('file', image.file);
+            localFile.append('title', junkBlob, title);
+            localFile.append('id', junkBlob, id);
+            localFile.append('imgBar', junkBlob);
+            localFile.append('article', junkBlob);
+
+            return fetch(config.url + "/admin/publish/uploadLocalImage",
+                {
+                    method: 'post',
+                    body: localFile,
+                    credentials: 'include'
+                })
+                .then((response) => response.json())
+                .then((rs) => {
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        } else {
+            let uploadUrl = config.articleUrl + id + '-' + title + "/media";
+            let imageUrl = image.original;
+            let imageBaseUrl = imageUrl.substring(0, imageUrl.lastIndexOf('/'));
+
+            if (uploadUrl !== imageBaseUrl) {
+                return fetch(config.url + "/admin/publish/uploadImage",
+                    {
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ url: image.original, title: title, id: id, imgBar: true, source: "Article" }),
+                        credentials: 'include'
+                    })
+                    .then((response) => response.json())
+                    .then((rs) => {
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
+            } else {
+                return Promise.resolve();
+            }
+        }
+
+    }
+
+    uploadDraftImage(key, entityObject, articleContent) {
+        const { title, id } = this.state;
+        let entity = entityObject[key];
+        let oldUrl = entity.data.src;
+        var junkBlob = new Blob(['sup'], { type: 'text/plain' });
+        if (entity.data.file) {
+            let localFile = new FormData();
+            localFile.append('file', entity.data.file);
+            localFile.append('title', junkBlob, title);
+            localFile.append('id', junkBlob, id);
+            localFile.append('draft', junkBlob);
+            localFile.append('article', junkBlob);
+
+            return fetch(config.url + "/admin/publish/uploadLocalImage",
+                {
+                    method: 'post',
+                    body: localFile,
+                    credentials: 'include'
+                })
+                .then((response) => response.json())
+                .then((rs) => {
+                    articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
+                    let newArticle = EditorState.createWithContent(articleContent);
+
+                    this.setState({ editorStateBody: newArticle });
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        } else {
+            return fetch(config.url + "/admin/publish/uploadImage",
+                {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: oldUrl, title: title, id: id, draft: true, source: "Article" }),
+                    credentials: 'include'
+                })
+                .then((response) => response.json())
+                .then((rs) => {
+                    articleContent = articleContent.replaceEntityData(key, { src: rs.url, file: null });
+                    let newArticle = EditorState.createWithContent(articleContent);
+
+                    this.setState({ editorStateBody: newArticle });
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        }
+    }
 	
 	
 	createCheckbox(label) {
@@ -424,13 +464,13 @@ class EditArticle extends React.Component {
 	_onDeleteClick() {
 		var result = window.confirm("Are you sure you want to delete this article?");
 		if (result) {
-			fetch(config.url + "/admin/publish/deleteArticle",
+			fetch(config.url + "/admin/publish/deleteContent",
 			{
 				method: 'post',
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ key: this.state.ogTitle, id: this.state.id }),
+				body: JSON.stringify({ key: this.state.ogTitle, id: this.state.id, source: "Article" }),
 				credentials: 'include'
 			})
 				.then((response) => {
@@ -455,7 +495,7 @@ class EditArticle extends React.Component {
 	}
 	
 	modifyImageBar(newImages) {
-		console.log(newImages);
+        console.log(newImages);
 		this.setState({ images: newImages });
 		console.log(this.state.images);
 	}

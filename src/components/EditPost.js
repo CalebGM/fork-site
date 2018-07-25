@@ -2,9 +2,6 @@
 
 import React from 'react';
 import { Redirect } from 'react-router';
-import { Link } from 'react-router-dom';
-import { connect } from 'react-redux';
-import { setRedirectUrl } from '../actions';
 
 import Editor from 'draft-js-plugins-editor';
 import { DefaultDraftBlockRenderMap, EditorState, ContentState, RichUtils, Modifier, convertToRaw } from 'draft-js';
@@ -14,7 +11,7 @@ import createVideoPlugin from 'draft-js-video-plugin';
 import createImagePlugin from 'draft-js-image-plugin';
 import createFocusPlugin from 'draft-js-focus-plugin';
 import createToolbarPlugin from 'last-draft-js-toolbar-plugin';
-//import '!style-loader!css-loader!../styles/draftToolbarStyles.css';
+import '!style-loader!css-loader!../styles/draftToolbarStyles.css';
 import createLinkifyPlugin from 'draft-js-linkify-plugin';
 import '!style-loader!css-loader!draft-js-linkify-plugin/lib/plugin.css';
 import createLinkPlugin from 'draft-js-link-plugin';
@@ -23,15 +20,17 @@ import '!style-loader!css-loader!draft-js-link-plugin/lib/plugin.css';
 import editorStyles from '../styles/Editor.css';
 import videoStyles from '../styles/Video.css';
 import imageStyles from '../styles/Image.css';
+import '!style-loader!css-loader!draft-js-inline-toolbar-plugin/lib/plugin.css';
 import 'draft-js-image-plugin/lib/plugin.css';
 
 import MediaAdd from './MediaAdd.js';
+import LogoAdd from './LogoAdd.js';
 import ImageBar from './ImageBar.js';
-import PreviewPost from './PreviewPost.js';
+import Preview from './Preview.js';
+
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('../config.js')[env];
-
 
 const linkPlugin = createLinkPlugin({
     component: (props) => {
@@ -47,7 +46,6 @@ const linkifyPlugin = createLinkifyPlugin({
         return (<a {...rest} target="_blank" />);
     }
 });
-
 const toolbarPlugin = createToolbarPlugin();
 const { Toolbar } = toolbarPlugin;
 const focusPlugin = createFocusPlugin();
@@ -72,27 +70,30 @@ const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
 
 const plugins = [focusPlugin, videoPlugin, toolbarPlugin, linkifyPlugin, imagePlugin, linkPlugin];
+const categories = config.categories;
 const tabCharacter = "	";
 
-class AddPost extends React.Component {
+
+class EditPost extends React.Component {
     constructor(props) {
         super(props);
+
         this.state = {
-            editorStateTitle: EditorState.createEmpty(),
-            editorStateBody: EditorState.createEmpty(),
-            title: '',
-            author: props.login ? props.username : 'Guest',
+            editorStateBody: props.article,
+            ogTitle: props.title,
+            title: props.title,
+            author: props.author,
+            id: props.id,
+            images: props.images,
             preview: false,
             finishPublish: false,
-            fetches: {},
-            images: [],
-            articleTitle: props.title,
-            articleId: props.articleId,
-            id: null
+            deleteRedirect: false,
+            fetches: {}
         };
-        this.onChangeTitle = (editorStateTitle) => this.setState({ editorStateTitle });
+
         this.onChangeBody = (editorStateBody) => this.setState({ editorStateBody });
         this.modifyImageBar = this.modifyImageBar.bind(this);
+        this.handleChange = this.handleChange.bind(this);
         this.handleTitleChange = this.handleTitleChange.bind(this);
         this.handleAuthorChange = this.handleAuthorChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -101,14 +102,6 @@ class AddPost extends React.Component {
         this.onTab = this.onTab.bind(this);
     }
 
-
-    componentDidMount() {
-        const { login, dispatch, currentURL } = this.props;
-
-        if (!login) {
-            dispatch(setRedirectUrl(currentURL));
-        }
-    }
 
     handleKeyCommand(command) {
         const newState = RichUtils.handleKeyCommand(this.state.editorStateBody, command);
@@ -133,6 +126,7 @@ class AddPost extends React.Component {
         this.setState({ editorStateBody: EditorState.push(currentState, newContentState, 'insert-characters') });
     }
 
+
     handlePastedText(text) {
         const { editorStateBody } = this.state;
         const pastedBlocks = ContentState.createFromText(text).blockMap;
@@ -145,6 +139,16 @@ class AddPost extends React.Component {
         return 'handled';
     }
 
+    handleChange(event) {
+        var newCat = this.state.category;
+        if (newCat.has(event.target.value)) {
+            newCat.delete(event.target.value);
+            this.setState({ category: newCat });
+        } else {
+            newCat.add(event.target.value);
+            this.setState({ category: newCat });
+        }
+    }
 
     handleTitleChange(event) {
         this.setState({ title: event.target.value });
@@ -159,8 +163,11 @@ class AddPost extends React.Component {
         var myForm = document.getElementById('publish');
         var formData = new FormData(myForm);
         var articleContent = this.state.editorStateBody.getCurrentContent();
-        
+
+        var ogTitle = this.state.ogTitle;
+        var id = this.state.id;
         var title = formData.get('title');
+        var author = formData.get('author');
         var firstBlock = articleContent.getFirstBlock();
         var nextBlock = articleContent.getBlockAfter(firstBlock.key);
 
@@ -169,93 +176,72 @@ class AddPost extends React.Component {
             if (key) {
                 let entity = articleContent.getEntity(key);
                 if (entity.type === "image") {
-                    let fetches = this.state.fetches;
-                    fetches[key] = entity;
-                    this.setState({ fetches: fetches });
+                    let uploadUrl = config.postUrl + id + '-' + title + "/artmedia";
+                    let imageUrl = entity.data.src;
+                    let imageBaseUrl = imageUrl.substring(0, imageUrl.lastIndexOf('/'));
+
+                    if (uploadUrl !== imageBaseUrl) {
+                        let fetches = this.state.fetches;
+                        fetches[key] = entity;
+                        this.setState({ fetches: fetches });
+                    }
                 }
             }
             nextBlock = articleContent.getBlockAfter(nextBlock.key);
         }
 
-        this.getNextId().then(() => {
-            var fetches = this.state.fetches;
-            var promises = [];
-            for (var key in fetches) {
-                let request = this.uploadDraftImage(key, fetches, articleContent);
-                promises.push(request);
+
+        var fetches = this.state.fetches;
+        var promises = [];
+        for (var key in fetches) {
+            let request = this.uploadDraftImage(key, fetches, articleContent);
+            promises.push(request);
+        }
+
+        if (this.state.images.length > 0) {
+            for (var i = 0; i < this.state.images.length; i++) {
+                let imgBarRequest = this.uploadImgBar(this.state.images[i]);
+                promises.push(imgBarRequest);
             }
+        }
 
-
-            if (this.state.images.length > 0) {
-                for (var i = 0; i < this.state.images.length; i++) {
-                    let imgBarRequest = this.uploadImgBar(this.state.images[i]);
-                    promises.push(imgBarRequest);
+        Promise.all(promises).then(() => {
+            var articleContentImg = this.state.editorStateBody.getCurrentContent();
+            var articleRaw = convertToRaw(articleContentImg);
+            var imageKeys = [];
+            for (var i = 0; i < this.state.images.length; i++) {
+                if (this.state.images[i].file) {
+                    imageKeys.push(id + '-' + title + '/media/' + this.state.images[i].file.name)
+                } else {
+                    let imageSplit = this.state.images[i].original.split('/');
+                    let imgFileName = id + '-' + title + '/media/' + imageSplit[imageSplit.length - 1];
+                    imageKeys.push(imgFileName);
                 }
             }
-
-
-            Promise.all(promises).then(() => {
-                var articleContentImg = this.state.editorStateBody.getCurrentContent();
-                var articleRaw = convertToRaw(articleContentImg);
-                fetch(config.url + "/publish/addContent",
-                    {
-                        method: 'post',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            id: this.state.id,
-                            title: this.state.title,
-                            content: articleRaw,
-                            source: "Post"
-                        }),
-                        credentials: 'include'
-                    })
-                    .then((response) => {
-                        this.setState({ finishPublish: true });
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                    });
-            });
-        })
-
-    }
-
-    getNextId() {
-        const { title } = this.state;
-        var login = this.props.login;
-        var username = this.props.username;
-        var parentId = this.props.parentId;
-        var parentIsStart = this.props.start;
-        var articleTitle = this.state.articleTitle;
-
-        return fetch(config.url + "/publish/addSql",
-            {
-                method: 'post',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    title: title,
-                    articleTitle: articleTitle,
-                    parentId: parentId,
-                    login: login,
-                    author: username,
-                    parentIsStart: parentIsStart,
-                    source: "Post"
-                }),
-                credentials: 'include'
-            })
-            .then((response) => response.json())
-            .then((rs) => {
-                console.log(rs);
-                this.setState({ id: rs.id });
-            })
-            .catch((error) => {
-                console.log(error);
-            });
-
+            fetch(config.url + "/admin/publish/updateContent",
+                {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        ogTitle: ogTitle,
+                        id: id,
+                        author: author,
+                        content: articleRaw,
+                        source: "Post",
+                        imgBar: imageKeys
+                    }),
+                    credentials: 'include'
+                })
+                .then((response) => {
+                    this.setState({ finishPublish: true });
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+        });
     }
 
     uploadImgBar(image) {
@@ -282,21 +268,30 @@ class AddPost extends React.Component {
                     console.log(error);
                 });
         } else {
-            return fetch(config.url + "/admin/publish/uploadImage",
-                {
-                    method: 'post',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ url: image.original, title: title, id: id, imgBar: true, post: true }),
-                    credentials: 'include'
-                })
-                .then((response) => response.json())
-                .then((rs) => {
-                })
-                .catch((error) => {
-                    console.log(error);
-                });
+            let uploadUrl = config.postUrl + id + '-' + title + "/media";
+            let imageUrl = image.original;
+            let imageBaseUrl = imageUrl.substring(0, imageUrl.lastIndexOf('/'));
+
+            if (uploadUrl !== imageBaseUrl) {
+                return fetch(config.url + "/admin/publish/uploadImage",
+                    {
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ url: image.original, title: title, id: id, imgBar: true, source: "Post" }),
+                        credentials: 'include'
+                    })
+                    .then((response) => response.json())
+                    .then((rs) => {
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
+            } else {
+                return Promise.resolve();
+            }
+
         }
     }
 
@@ -336,7 +331,7 @@ class AddPost extends React.Component {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ url: oldUrl, title: title, id: id, draft: true, post: true }),
+                    body: JSON.stringify({ url: oldUrl, title: title, id: id, draft: true, source: "Post" }),
                     credentials: 'include'
                 })
                 .then((response) => response.json())
@@ -377,10 +372,34 @@ class AddPost extends React.Component {
         this.setState({ preview: false });
     }
 
+    _onDeleteClick() {
+        var result = window.confirm("Are you sure you want to delete this article?");
+        if (result) {
+            fetch(config.url + "/admin/publish/deleteContent",
+                {
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ key: this.state.ogTitle, id: this.state.id, source: "Post" }),
+                    credentials: 'include'
+                })
+                .then((response) => {
+                    if (response.status === 200) {
+                        this.setState({ deleteRedirect: true });
+                        alert("Article Successfully Deleted");
+                    }
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+
+        }
+    }
+
     _focus = () => {
         this.editor.focus();
     }
-
 
     modifyImageBar(newImages) {
         console.log(newImages);
@@ -389,77 +408,66 @@ class AddPost extends React.Component {
     }
 
     render() {
-        const { login, username } = this.props;
-        const { finishPublish, title, articleTitle, id, articleId } = this.state;
+        const { onCancel, onPublish } = this.props;
+        const { finishPublish, title, ogTitle, deleteRedirect } = this.state;
 
-        const AuthorName = login ? username : "Guest";
+        if (finishPublish && (title !== ogTitle)) {
+            return <Redirect to={`/story/${title}`} />;
+        } else if (finishPublish) {
+            onPublish();
+        } else if (deleteRedirect) {
+            return <Redirect to={`/`} />
+        }
 
-        if (!login) {
-            //return <Redirect to={`admin`} />;
-        }
-        if (finishPublish) {
-            return <Redirect to={`/story/${articleTitle}/id=${articleId}/at=${title}/id=${id}`} />;
-        }
+
+
 
         return (
             <div className={editorStyles.publishBody} >
                 {this.state.preview ? (
                     <div>
-                        <PreviewPost
+                        <Preview
                             article={this.state.editorStateBody}
                             title={this.state.title}
-                            author={AuthorName}
+                            categories={this.state.category}
+                            author={this.state.author}
                             images={this.state.images}
                         />
                         <div style={{ textAlign: 'left' }}>
-                            <button onClick={this._onEditClick.bind(this)}>Back To Edits</button>
+                            <button onClick={this._onEditClick.bind(this)}>Back to Edits</button>
                         </div>
                     </div>
                 ) : (
                         <div>
-                            <div>
-                                <h1 style={{ borderTop: 'dotted', borderWidth: '2px', paddingTop: '10px' }}>Add Your Post</h1>
-                            </div>
-
-                            {!login ? (
-                                <div style={{ color: '#0338ff', paddingBottom: '15px' }}>
-                                    <span>You're currently not logged in. You'll still be able to post, but you won't
-                                        be able to track your contributions. Sign Up or Login </span>
-                                    <Link to="/login">here</Link>
-                                    <span>, or continue as a Guest.</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <div>
+                                    <h1>Edit Your Article</h1>
                                 </div>
-                            ) : (
-                                    <div></div>
-                                )}
+                                <div style={{ paddingTop: '24px' }}>
+                                    <button style={{ fontSize: '18px' }} onClick={this._onDeleteClick.bind(this)}>Delete Article</button>
+                                </div>
+
+                            </div>
 
                             <form className={editorStyles.form} name="publish" id="publish" onSubmit={this.handleSubmit} >
 
-                                <input className={editorStyles.TitleInputBig}
+                                <input className={editorStyles.TitleInput}
                                     type="text"
                                     name="title"
                                     value={this.state.title}
-                                    placeholder="Give your post a title..."
-                                    onChange={this.handleTitleChange}
-                                    required
-                                />
-                                <input className={editorStyles.TitleInputSmall}
-                                    type="text"
-                                    name="title"
-                                    value={this.state.title}
-                                    placeholder="Your title..."
+                                    placeholder="Give your article a unique title..."
                                     onChange={this.handleTitleChange}
                                     required
                                 />
                                 <div className={editorStyles.SubInfo}>
                                     <div className={editorStyles.AuthorInput}>
-                                        {AuthorName}
-                                        {/*<input type="text"
-										name="author"
-										value={this.state.author}
-										placeholder="Write the author's name..."
-										onChange={this.handleAuthorChange}
-										required
-									/>*/}
+                                        <input type="text"
+                                            name="author"
+                                            value={this.state.author}
+                                            placeholder="Write the author's name..."
+                                            onChange={this.handleAuthorChange}
+                                            required
+                                        />
                                     </div>
                                 </div>
                             </form>
@@ -468,6 +476,7 @@ class AddPost extends React.Component {
                                 <div className={editorStyles.ImageBarAdd}>
                                     <ImageBar
                                         onChange={this.modifyImageBar}
+                                        images={this.state.images}
                                     />
                                 </div>
                             </div>
@@ -478,6 +487,8 @@ class AddPost extends React.Component {
                             <div className={editorStyles.buttons}>
                                 <button className={editorStyles.button} onClick={this._onBoldClick.bind(this)}>Bold</button>
                                 <button className={editorStyles.button} onClick={this._onItalicizeClick.bind(this)}>Italic</button>
+                                <button className={editorStyles.button} onClick={this._onVidClick.bind(this)}>Add Test Video</button>
+                                <button className={editorStyles.button} onClick={this._onImgClick.bind(this)}>Add Test Image</button>
                                 <MediaAdd
                                     editorState={this.state.editorStateBody}
                                     onChange={this.onChangeBody}
@@ -508,12 +519,17 @@ class AddPost extends React.Component {
                                 <Toolbar />
                             </div>
 
-                            <div style={{ display: 'inline-block', float: 'right' }}>
-                                <div style={{ display: 'inline-block', paddingRight: '10px' }}>
-                                    <button onClick={this._onPreviewClick.bind(this)}>Preview Post</button>
+                            <div>
+                                <div style={{ display: 'inline-block', float: 'left' }}>
+                                    <button onClick={() => onCancel()}>Cancel Edits</button>
                                 </div>
-                                <div style={{ display: 'inline-block' }}>
-                                    <input type="submit" value="Submit Post" form="publish" />
+                                <div style={{ display: 'inline-block', float: 'right' }}>
+                                    <div style={{ display: 'inline-block', paddingRight: '10px' }}>
+                                        <button onClick={this._onPreviewClick.bind(this)}>Preview Article</button>
+                                    </div>
+                                    <div style={{ display: 'inline-block' }}>
+                                        <input type="submit" value="Submit Article" form="publish" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -524,15 +540,4 @@ class AddPost extends React.Component {
 }
 
 
-const mapStateToProps = (state, ownProps) => {
-    return {
-        login: state.user.login,
-        username: state.user.username,
-        //currentURL: ownProps.location.pathname
-    }
-}
-
-
-
-
-export default connect(mapStateToProps)(AddPost)
+export default EditPost;

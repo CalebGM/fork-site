@@ -34,7 +34,7 @@
     }
 
 .InfoContainer {
-    width: 66.7%;
+    width: 100%;
     display: flex;
     flex-wrap: wrap;
     margin-left: 4px;
@@ -131,8 +131,8 @@
         font-size: 0.7em;
     }
 
-    .Article {
-        height: 60px;
+    .Created {
+        padding-bottom: 2px;
     }
 
     .Author {

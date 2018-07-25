@@ -5,7 +5,7 @@ import Editor from 'draft-js-plugins-editor';
 import Immutable from 'immutable';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import EditArticle from './EditArticle.js';
+import EditPost from './EditPost.js';
 import AddPost from './AddPost.js';
 import DisplayChildren from './DisplayChildren.js';
 import ImageGallery from 'react-image-gallery';
@@ -123,13 +123,13 @@ class Posts extends React.Component {
 
 
     fetchPost() {
-        fetch(config.url + "/getPost",
+        fetch(config.url + "/getContent",
             {
                 method: 'post',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ id: this.state.postId, title: this.state.postTitle }),
+                body: JSON.stringify({ id: this.state.postId, title: this.state.postTitle, source: "Post" }),
                 credentials: 'include'
             })
             .then((response) => response.json())
@@ -164,12 +164,13 @@ class Posts extends React.Component {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ id: this.state.postId, title: this.state.postTitle }),
+                body: JSON.stringify({ id: this.state.postId, title: this.state.postTitle, source: "Post" }),
                 credentials: 'include'
             })
             .then((response) => response.json())
             .then((rs) => {
                 if (!this.state.unmounted) {
+                    console.log(rs);
                     this.setState({ images: rs.images });
                 }
             })
@@ -280,7 +281,7 @@ class Posts extends React.Component {
     }
 
     onPublish() {
-        this.fetchArticle();
+        this.fetchPost();
     }
 
     _focus() {
@@ -323,9 +324,10 @@ class Posts extends React.Component {
             <div className={ArticleStyles.Entry}>
                
                 {editMode ? (
-                    <EditArticle
+                    <EditPost
                         article={article}
-                        title={title}
+                        title={postTitle}
+                        id={postId}
                         author={author}
                         created={created}
                         images={images}

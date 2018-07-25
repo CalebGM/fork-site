@@ -31,7 +31,8 @@ var config = require('../config.js')[env];
 
 const linkPlugin = createLinkPlugin({
 	component: (props) => {
-		const { contentState, ...rest} = props;
+        const { contentState, ...rest } = props;
+        console.log(props);
 		// jsx-a11y/anchor-has-content
 		return (<a {...rest} target="_blank"/>);
 	}
@@ -39,6 +40,7 @@ const linkPlugin = createLinkPlugin({
 const linkifyPlugin = createLinkifyPlugin({
 	component: (props) => {
 		const { contentState, ...rest} = props;
+        console.log(props);
 		// jsx-a11y/anchor-has-content
 		return (<a {...rest} target="_blank"/>);
 	}
@@ -66,7 +68,7 @@ const blockRenderMap = Immutable.Map({
 const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
 
-const plugins = [focusPlugin, videoPlugin, toolbarPlugin, linkifyPlugin, imagePlugin, linkPlugin];
+const plugins2 = [focusPlugin, videoPlugin, toolbarPlugin, linkifyPlugin, imagePlugin, linkPlugin];
 const tabCharacter = "	";
 
 class EditAbout extends React.Component {
@@ -133,7 +135,7 @@ class EditAbout extends React.Component {
 			if (key) {
 				let entity = articleContent.getEntity(key);
 				if (entity.type === "image") {
-					let uploadUrl = "https://s3-us-west-2.amazonaws.com/ata-media/media";
+					let uploadUrl = "https://s3-us-west-2.amazonaws.com/cthouse-media/media";
 					let imageUrl = entity.data.src;
 					let imageBaseUrl = imageUrl.substring(0, imageUrl.lastIndexOf('/'));
 					
@@ -280,7 +282,7 @@ class EditAbout extends React.Component {
 						onTab={this.onTab}
 						blockRenderMap={extendedBlockRenderMap}
 						onChange={this.onChangeBody} 
-						plugins={plugins}
+						plugins={plugins2}
 						textAlign='left'
 						//ref={(element) => { this.editor = element; }}
 					/>

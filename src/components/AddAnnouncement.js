@@ -171,49 +171,86 @@ class AddAnnouncement extends React.Component {
         }
 
 
-        var fetches = this.state.fetches;
-        var promises = [];
-        for (var key in fetches) {
-            let request = this.uploadDraftImage(key, fetches, articleContent);
-            promises.push(request);
-        }
+        this.getNextId().then(() => {
+            var fetches = this.state.fetches;
+            var promises = [];
+            for (var key in fetches) {
+                let request = this.uploadDraftImage(key, fetches, articleContent);
+                promises.push(request);
+            }
 
 
-        Promise.all(promises).then(() => {
-            var articleContentImg = this.state.editorStateBody.getCurrentContent();
-            var articleRaw = convertToRaw(articleContentImg);
-            fetch(config.url + "/publish/addAnnouncement",
-               {
-                   method: 'post',
-                   headers: {
-                       'Content-Type': 'application/json'
-                   },
-                   body: JSON.stringify({
-                       title: title,
-                       article: articleRaw
-                   }),
-                   credentials: 'include'
-               })
-                .then((response) => response.json())
-                .then((rs) => {
-                   console.log(rs);
-                   this.setState({ finishPublish: true, postId: rs.postId });
-               })
-               .catch((error) => {
-                   console.log(error);
-               });
+            Promise.all(promises).then(() => {
+                var articleContentImg = this.state.editorStateBody.getCurrentContent();
+                var articleRaw = convertToRaw(articleContentImg);
+                fetch(config.url + "/publish/addContent",
+                   {
+                       method: 'post',
+                       headers: {
+                           'Content-Type': 'application/json'
+                       },
+                       body: JSON.stringify({
+                           id: this.state.id,
+                           title: this.state.title,
+                           content: articleRaw,
+                           source: "Announcement"
+                       }),
+                       credentials: 'include'
+                   })
+                    .then((response) => {
+                        this.setState({ finishPublish: true });
+                    })
+                   .catch((error) => {
+                       console.log(error);
+                   });
+            });
         });
+
+    }
+
+    getNextId() {
+        const { title } = this.state;
+        var login = this.props.login;
+        var username = this.props.username;
+        var parentId = this.props.parentId;
+        var parentIsStart = this.props.start;
+        var articleTitle = this.state.articleTitle;
+
+        return fetch(config.url + "/publish/addSql",
+            {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    title: title,
+                    source: "Announcement"
+                }),
+                credentials: 'include'
+            })
+            .then((response) => response.json())
+            .then((rs) => {
+                console.log(rs);
+                this.setState({ id: rs.id });
+            })
+            .catch((error) => {
+                console.log(error);
+            });
+
     }
 
     uploadDraftImage(key, entityObject, articleContent) {
+        const { title, id } = this.state;
         let entity = entityObject[key];
         let oldUrl = entity.data.src;
         var junkBlob = new Blob(['sup'], { type: 'text/plain' });
         if (entity.data.file) {
             let localFile = new FormData();
             localFile.append('file', entity.data.file);
-            localFile.append('title', junkBlob, this.state.title);
+            localFile.append('title', junkBlob, title);
+            localFile.append('id', junkBlob, id);
             localFile.append('draft', junkBlob);
+            localFile.append('announcement', junkBlob);
 
             return fetch(config.url + "/admin/publish/uploadLocalImage",
                 {
@@ -238,7 +275,7 @@ class AddAnnouncement extends React.Component {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ url: oldUrl, title: this.state.title, draft: true }),
+                    body: JSON.stringify({ url: oldUrl, title: title, id: id, draft: true, announcement: true }),
                     credentials: 'include'
                 })
                 .then((response) => response.json())
@@ -292,7 +329,7 @@ class AddAnnouncement extends React.Component {
 
     render() {
         const { login, admin } = this.props;
-        const { finishPublish, title, postId } = this.state;
+        const { finishPublish, title, id } = this.state;
 
        
 
@@ -300,7 +337,7 @@ class AddAnnouncement extends React.Component {
             //return <Redirect to={`admin`} />;
         }
         if (finishPublish) {
-            return <Redirect to={`/announcement/${title}/id=${postId}`} />;
+            return <Redirect to={`/announcement/${title}/id=${id}`} />;
         }
 
         return (
