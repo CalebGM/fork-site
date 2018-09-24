@@ -344,7 +344,6 @@ class Publish extends React.Component {
         let entity = entityObject[key];
         let oldUrl = entity.data.src;
         var junkBlob = new Blob(['sup'], { type: 'text/plain' });
-        console.log(entity.data.file);
         if (entity.data.file) {
             let localFile = new FormData();
             localFile.append('file', entity.data.file.image);
@@ -353,8 +352,6 @@ class Publish extends React.Component {
             localFile.append('id', junkBlob, id);
             localFile.append('draft', junkBlob);
             localFile.append('article', junkBlob);
-            console.log(localFile);
-            console.log(this);
 
             return fetch(config.url + "/admin/publish/uploadLocalImage",
                 {

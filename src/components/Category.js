@@ -2,6 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom';
 import DocumentTitle from 'react-document-title';
 import QuickArticleDisplay from './QuickArticleDisplay.js';
+import ShowLoading from './ShowLoading.js';
 import CategoryStyles from '../styles/Category.css';
 
 var env = process.env.NODE_ENV || 'development';
@@ -12,21 +13,22 @@ class Category extends React.Component {
 		super(props);
 		var page = Number(props.match.params.num);
 		var nextPage = (page + 1).toString();
-		this.state = { articles: null, cat: props.match.params.subCat, page: page, nextPage: nextPage };
+        this.state = { articles: null, cat: props.match.params.subCat, page: page, nextPage: nextPage, loading: false };
 	}
 	
-	componentDidMount() {
+    componentDidMount() {
+        this.setState({ loading: true });
 		this.fetchCategoryArticles();
 	}
 	
 	componentWillReceiveProps(nextProps) {
 		if (this.props.match.params.subCat !== nextProps.match.params.subCat) {
-			this.setState({ articles: null, cat: nextProps.match.params.subCat, page: '1', nextPage: '2'}, 
+			this.setState({ articles: null, cat: nextProps.match.params.subCat, page: '1', nextPage: '2', loading: true}, 
 				() => this.fetchCategoryArticles());
 		} else if (this.state.page !== nextProps.match.params.num) {
 			var page = Number(nextProps.match.params.num);
 			var nextPage = (page + 1).toString();
-			this.setState({ articles: null, page: nextProps.match.params.num, nextPage: nextPage },
+			this.setState({ articles: null, page: nextProps.match.params.num, nextPage: nextPage, loading: true },
 				() => this.fetchCategoryArticles());
 		}
 	}
@@ -49,7 +51,7 @@ class Category extends React.Component {
 		})
 			.then((response) => response.json())
 			.then((rs) => {
-				this.setState({ articles: rs });
+				this.setState({ articles: rs, loading: false });
 			})
 			.catch((error) => {
 				console.log(error);

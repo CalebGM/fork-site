@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import QuickArticleDisplay from './QuickArticleDisplay.js';
 import AnnouncementBar from './AnnouncementBar.js';
+import ShowLoading from './ShowLoading.js';
 import styles from '../styles/Category.css';
 
 var env = process.env.NODE_ENV || 'development';
@@ -21,11 +22,12 @@ class Home extends React.Component {
         var nextPage = (page + 1).toString();
         
 		
-		this.state = { articles: null, announcements: null, page: page, nextPage: nextPage };
+		this.state = { articles: null, announcements: null, page: page, nextPage: nextPage, loading: false };
 	}
 	
 	
-	componentDidMount() {
+    componentDidMount() {
+        this.setState({ loading: true });
         this.fetchHomeArticles();
         this.fetchAnnouncements();
 	}
@@ -36,7 +38,7 @@ class Home extends React.Component {
 		if ((this.state.page !== nextProps.match.params.num) && nextProps.match.params.num) {
 			var page = Number(nextProps.match.params.num);
 			var nextPage = (page + 1).toString();
-			this.setState({ articles: null, page: nextProps.match.params.num, nextPage: nextPage },
+			this.setState({ articles: null, page: nextProps.match.params.num, nextPage: nextPage, loading: true },
 				() => this.fetchHomeArticles());
 		} else if (nextProps !== this.props) {
 			//this.setState({ articles: null, page: 1, nextPage: 2 },
@@ -57,7 +59,7 @@ class Home extends React.Component {
 		})
 			.then((response) => response.json())
 			.then((rs) => {
-				this.setState({ articles: rs });
+				this.setState({ articles: rs, loading: false });
 			})
 			.catch((error) => {
 				console.log(error);
@@ -105,6 +107,7 @@ class Home extends React.Component {
 					Next Page
 				</Link>
 			</div>
+            <ShowLoading loading={this.state.loading} />
 		</div>
 		);
 	}

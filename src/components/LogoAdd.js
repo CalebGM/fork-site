@@ -2,7 +2,6 @@
 
 import React from 'react';
 import loadImage from 'blueimp-load-image';
-import { Cropper } from 'react-image-cropper';
 import ReactCrop from 'react-image-crop';
 import ShowLoading from './ShowLoading.js';
 import '!style-loader!css-loader!react-image-crop/dist/ReactCrop.css';
@@ -72,29 +71,16 @@ class LogoAdd extends React.Component {
             (img) => this.addLocalImage(img),
             { orientation: true }
         );
-		//e.preventDefault();
-		//const file = e.target.files[0];
-		//if (file.type.indexOf('image/') === 0) {
-		//	const src = URL.createObjectURL(file);
-		//	this.setState({ url: src },
-		//		() => this.addLocalImage(file));
-		//}
 	}
 	
     addLocalImage(localImage) {
         const { onChange } = this.props;
-        //var url = localImage.toDataURL('image/jpeg', 0.5);
         localImage.toBlob((blob) => {
             var newLogo = { original: URL.createObjectURL(blob), file: blob };
-            console.log(newLogo);
             onChange(newLogo);
             this.setState({ url: '', open: false, loading: false, logo: newLogo, error: false });
         }, 'image/jpeg', 0.5);
-
-		//const {onChange} = this.props;
-		//var newLogo = { original: this.state.url, file: localImage };
-		//onChange(newLogo);
-		//this.setState({ url: '', logo: newLogo });
+        
 	}
 	
 	
@@ -109,19 +95,10 @@ class LogoAdd extends React.Component {
 		this.setState({ url: event.target.value });
 	}
 	
-	dataURLtoBlob(dataurl) {
-		var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-			bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-		while(n--){
-			u8arr[n] = bstr.charCodeAt(n);
-		}
-		return new Blob([u8arr], {type:mime});
-	}
 	
     startCrop() {
         if (!this.state.error) {
             this.setState({ inCrop: true });
-            console.log(this);
             document.body.style.touchAction = 'none';
         } else {
             alert('Image cannot be cropped. Download locally and upload from your computer');
@@ -129,17 +106,11 @@ class LogoAdd extends React.Component {
     }
 
     sendCropError() {
-        console.log(this);
         document.body.style.touchAction = 'auto';
         this.setState({ inCrop: false, error: true },
             () => alert('Image cannot be cropped. Download locally and upload from your computer'));
     }
-	//<Cropper
-    //                    ratio={151 / 133}
-    //                    src={logo.original}
-    //                    beforeImgLoad={this.checkCropStatus}
-	//					ref={i => this.cropper = i}
-	//				/>
+
 	cancelCrop() {
         this.setState({ inCrop: false });
         document.body.style.touchAction = 'auto';
@@ -147,8 +118,8 @@ class LogoAdd extends React.Component {
 	
     cropLogo() {
         const { logo, pixelCrop, image } = this.state;
-		const {onChange} = this.props;
-        console.log(this);
+        const { onChange } = this.props;
+
         const canvas = document.createElement('canvas');
         canvas.width = pixelCrop.width;
         canvas.height = pixelCrop.height;
@@ -165,21 +136,13 @@ class LogoAdd extends React.Component {
             pixelCrop.width,
             pixelCrop.height
         );
-
-        //const base64Image = canvas.toDataURL('image/jpeg', 0.5);
-        //var cropBlob = this.dataURLtoBlob(base64Image);
         canvas.toBlob((blob) => {
             var newLogo = { original: URL.createObjectURL(blob), file: blob };
             onChange(newLogo);
             this.setState({ logo: newLogo, inCrop: false, crop: { aspect: 151/133, height: 20, x: 1, y: 1 } });
             document.body.style.touchAction = 'auto';
         }, 'image/jpeg', 0.5);
-
-		//var cropBlob = this.dataURLtoBlob(this.cropper.crop());
-		//var newLogo = { original: this.cropper.crop(), file: cropBlob };
-		//onChange(newLogo);
-        //this.setState({ logo: newLogo, crop: false });
-        //document.body.style.touchAction = 'auto';
+   
 	}
 	
 	

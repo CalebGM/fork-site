@@ -50,23 +50,17 @@ class MediaAdd extends Component {
         e.preventDefault();
         this.setState({ open: false, loading: true });
         var name = e.target.files[0].name;
-        console.log(name)
+
         var loadingImage = loadImage(
             e.target.files[0],
             (img) => this.addLocalImage(img, name),
             { orientation: true }
         );
-		//if (file.type.indexOf('image/') === 0) {
-        //const src = URL.createObjectURL(file);
-        //console.log(src);
-		//	this.setState({ url: loadingImage.src },
-         //       () =>
-		//}
 	}
 	
     addLocalImage(localImage, imgName) {
         const { editorState, onChange } = this.props;
-        console.log(imgName);
+
         localImage.toBlob((blob) => {
             var url = URL.createObjectURL(blob);
             onChange(this.props.modifier(editorState, url, { file: { image: blob, name: imgName } }));

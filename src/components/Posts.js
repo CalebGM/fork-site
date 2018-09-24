@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import EditPost from './EditPost.js';
 import AddPost from './AddPost.js';
 import DisplayChildren from './DisplayChildren.js';
+import ShowLoading from './ShowLoading.js';
 import ImageGallery from 'react-image-gallery';
 
 import createVideoPlugin from 'draft-js-video-plugin';
@@ -95,7 +96,8 @@ class Posts extends React.Component {
             shareFull: false,
             mobileShowOptions: false,
             postUrlSingle: encodeURI("https://collaborationtreehouse.com/story/" + props.article + "/id=" + props.articleId + "/at=" + props.title + "/id=" + props.id),
-            postUrlFull: encodeURI("https://collaborationtreehouse.com/story/" + props.article + "/id=" + props.articleId + "/at=" + props.title + "/id=" + props.id + "/showFull")
+            postUrlFull: encodeURI("https://collaborationtreehouse.com/story/" + props.article + "/id=" + props.articleId + "/at=" + props.title + "/id=" + props.id + "/showFull"),
+            loading: false
         };
         this.onChange = (article) => this.setState({ article });
         this.onCancel = this.onCancel.bind(this);
@@ -105,13 +107,14 @@ class Posts extends React.Component {
     componentDidMount() {
         console.log(this.props);
         window.twttr.widgets.load();
+        this.setState({ loading: true });
         this.fetchPost();
         this.fetchChildren();
     }
 
     componentWillReceiveProps(nextProps) {
         if (this.props.id !== nextProps.id) {
-            this.setState({ postId: nextProps.id },
+            this.setState({ postId: nextProps.id, loading: true },
                 () => this.fetchPost());
         }
     }
@@ -150,7 +153,7 @@ class Posts extends React.Component {
                     console.log(this.state.unmounted);
                     this.setState({
                         article: selArticle, ogArticle: selArticle, finished: true,
-                        author: postInfo.Author, created: created, updated: updated, inEdit: false
+                        author: postInfo.Author, created: created, updated: updated, inEdit: false, loading: false
                     });
                 }
             })

@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import EditArticle from './EditArticle.js';
 import AddPost from './AddPost.js';
 import DisplayChildren from './DisplayChildren.js';
+import ShowLoading form './ShowLoading.js';
 import ImageGallery from 'react-image-gallery';
 
 import createVideoPlugin from 'draft-js-video-plugin';
@@ -94,7 +95,8 @@ class Article extends React.Component {
                         shareFull: false,
                         mobileShowOptions: false,
                         articleUrl: encodeURI("https://collaborationtreehouse.com/story/" + props.title + "/id=" + props.id),
-                        articleUrlFull: encodeURI("https://collaborationtreehouse.com/story/" + props.title + "/id=" + props.id)
+                        articleUrlFull: encodeURI("https://collaborationtreehouse.com/story/" + props.title + "/id=" + props.id),
+                        loading: false
 					};
 		this.onChange = (article) => this.setState({article});
 		this.onCancel = this.onCancel.bind(this);
@@ -104,6 +106,7 @@ class Article extends React.Component {
     componentDidMount() {
         window.twttr.widgets.load()
         if (!this.state.unmounted) {
+            this.setState({ loading: true });
             this.fetchArticle();
             this.fetchChildren();
         }
@@ -112,7 +115,7 @@ class Article extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (this.props.match && nextProps.match) {
             if (this.props.match.params.article !== nextProps.match.params.article) {
-                this.setState({ title: nextProps.match.params.article },
+                this.setState({ title: nextProps.match.params.article, loading: true },
                     () => this.fetchArticle());
             }
         }
@@ -155,7 +158,7 @@ class Article extends React.Component {
                 if (!this.state.unmounted) {
                     this.setState({
                         article: selArticle, ogArticle: selArticle, categories: newCat, finished: true,
-                        author: articleInfo.Author, created: created, updated: updated, inEdit: false
+                        author: articleInfo.Author, created: created, updated: updated, inEdit: false, loading: false
                     });
                 }
 				
