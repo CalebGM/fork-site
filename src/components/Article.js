@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import EditArticle from './EditArticle.js';
 import AddPost from './AddPost.js';
 import DisplayChildren from './DisplayChildren.js';
-import ShowLoading form './ShowLoading.js';
+import ShowLoading from './ShowLoading.js';
 import ImageGallery from 'react-image-gallery';
 
 import createVideoPlugin from 'draft-js-video-plugin';
