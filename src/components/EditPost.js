@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { Redirect } from 'react-router';
+import ShowLoading from './ShowLoading.js';
+
 
 import Editor from 'draft-js-plugins-editor';
 import { DefaultDraftBlockRenderMap, EditorState, ContentState, RichUtils, Modifier, convertToRaw } from 'draft-js';
@@ -24,7 +26,6 @@ import '!style-loader!css-loader!draft-js-inline-toolbar-plugin/lib/plugin.css';
 import 'draft-js-image-plugin/lib/plugin.css';
 
 import MediaAdd from './MediaAdd.js';
-import LogoAdd from './LogoAdd.js';
 import ImageBar from './ImageBar.js';
 import Preview from './Preview.js';
 
@@ -70,7 +71,6 @@ const extendedBlockRenderMap = DefaultDraftBlockRenderMap.merge(blockRenderMap);
 
 
 const plugins = [focusPlugin, videoPlugin, toolbarPlugin, linkifyPlugin, imagePlugin, linkPlugin];
-const categories = config.categories;
 const tabCharacter = "	";
 
 
@@ -88,7 +88,8 @@ class EditPost extends React.Component {
             preview: false,
             finishPublish: false,
             deleteRedirect: false,
-            fetches: {}
+            fetches: {},
+            loading: false
         };
 
         this.onChangeBody = (editorStateBody) => this.setState({ editorStateBody });
@@ -160,6 +161,7 @@ class EditPost extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault();
+        this.setState({ loading: true });
         var myForm = document.getElementById('publish');
         var formData = new FormData(myForm);
         var articleContent = this.state.editorStateBody.getCurrentContent();
@@ -236,7 +238,7 @@ class EditPost extends React.Component {
                     credentials: 'include'
                 })
                 .then((response) => {
-                    this.setState({ finishPublish: true });
+                    this.setState({ finishPublish: true, loading: false });
                 })
                 .catch((error) => {
                     console.log(error);
@@ -249,7 +251,8 @@ class EditPost extends React.Component {
         var junkBlob = new Blob(['sup'], { type: 'text/plain' });
         if (image.file) {
             let localFile = new FormData();
-            localFile.append('file', image.file);
+            localFile.append('file', image.file.image);
+            localFile.append('fileName', junkBlob, image.file.name);
             localFile.append('title', junkBlob, title);
             localFile.append('id', junkBlob, id);
             localFile.append('imgBar', junkBlob);
@@ -302,7 +305,8 @@ class EditPost extends React.Component {
         var junkBlob = new Blob(['sup'], { type: 'text/plain' });
         if (entity.data.file) {
             let localFile = new FormData();
-            localFile.append('file', entity.data.file);
+            localFile.append('file', entity.data.file.image);
+            localFile.append('fileName', junkBlob, entity.data.file.name);
             localFile.append('title', junkBlob, title);
             localFile.append('id', junkBlob, id);
             localFile.append('draft', junkBlob);
@@ -410,6 +414,7 @@ class EditPost extends React.Component {
     render() {
         const { onCancel, onPublish } = this.props;
         const { finishPublish, title, ogTitle, deleteRedirect } = this.state;
+        
 
         if (finishPublish && (title !== ogTitle)) {
             return <Redirect to={`/story/${title}`} />;
@@ -532,6 +537,7 @@ class EditPost extends React.Component {
                                     </div>
                                 </div>
                             </div>
+                            <ShowLoading loading={this.state.loading} />
                         </div>
                     )}
             </div>

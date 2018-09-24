@@ -5,6 +5,7 @@ import { Redirect } from 'react-router';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { setRedirectUrl } from '../actions';
+import ShowLoading from './ShowLoading.js';
 
 import Editor from 'draft-js-plugins-editor';
 import { DefaultDraftBlockRenderMap, EditorState, ContentState, RichUtils, Modifier, convertToRaw } from 'draft-js';
@@ -88,7 +89,8 @@ class AddPost extends React.Component {
             images: [],
             articleTitle: props.title,
             articleId: props.articleId,
-            id: null
+            id: null,
+            loading: false
         };
         this.onChangeTitle = (editorStateTitle) => this.setState({ editorStateTitle });
         this.onChangeBody = (editorStateBody) => this.setState({ editorStateBody });
@@ -156,11 +158,11 @@ class AddPost extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault();
+        this.setState({ loading: true });
         var myForm = document.getElementById('publish');
         var formData = new FormData(myForm);
         var articleContent = this.state.editorStateBody.getCurrentContent();
         
-        var title = formData.get('title');
         var firstBlock = articleContent.getFirstBlock();
         var nextBlock = articleContent.getBlockAfter(firstBlock.key);
 
@@ -212,7 +214,9 @@ class AddPost extends React.Component {
                         credentials: 'include'
                     })
                     .then((response) => {
-                        this.setState({ finishPublish: true });
+                        console.log('hi');
+                        console.log(this);
+                        this.setState({ finishPublish: true, loading: false });
                     })
                     .catch((error) => {
                         console.log(error);
@@ -263,7 +267,8 @@ class AddPost extends React.Component {
         var junkBlob = new Blob(['sup'], { type: 'text/plain' });
         if (image.file) {
             let localFile = new FormData();
-            localFile.append('file', image.file);
+            localFile.append('file', image.file.image);
+            localFile.append('fileName', junkBlob, image.file.name);
             localFile.append('title', junkBlob, title);
             localFile.append('id', junkBlob, id);
             localFile.append('imgBar', junkBlob);
@@ -288,7 +293,7 @@ class AddPost extends React.Component {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ url: image.original, title: title, id: id, imgBar: true, post: true }),
+                    body: JSON.stringify({ url: image.original, title: title, id: id, imgBar: true, source: "Post" }),
                     credentials: 'include'
                 })
                 .then((response) => response.json())
@@ -307,7 +312,8 @@ class AddPost extends React.Component {
         var junkBlob = new Blob(['sup'], { type: 'text/plain' });
         if (entity.data.file) {
             let localFile = new FormData();
-            localFile.append('file', entity.data.file);
+            localFile.append('file', entity.data.file.image);
+            localFile.append('fileName', junkBlob, entity.data.file.name);
             localFile.append('title', junkBlob, title);
             localFile.append('id', junkBlob, id);
             localFile.append('draft', junkBlob);
@@ -336,7 +342,7 @@ class AddPost extends React.Component {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ url: oldUrl, title: title, id: id, draft: true, post: true }),
+                    body: JSON.stringify({ url: oldUrl, title: title, id: id, draft: true, source: "Post" }),
                     credentials: 'include'
                 })
                 .then((response) => response.json())
@@ -516,6 +522,7 @@ class AddPost extends React.Component {
                                     <input type="submit" value="Submit Post" form="publish" />
                                 </div>
                             </div>
+                            <ShowLoading loading={this.state.loading} />
                         </div>
                     )}
             </div>

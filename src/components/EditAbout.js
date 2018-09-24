@@ -186,7 +186,8 @@ class EditAbout extends React.Component {
 		var junkBlob = new Blob(['sup'], {type: 'text/plain'});
 		if (entity.data.file) {
 			let localFile = new FormData();
-			localFile.append('file', entity.data.file);
+            localFile.append('file', entity.data.file.image);
+            localFile.append('fileName', junkBlob, entity.data.file.name);
 			localFile.append('title', junkBlob, 'About');
 			localFile.append('draft', junkBlob);
 			

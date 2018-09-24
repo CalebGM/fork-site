@@ -6,6 +6,8 @@ import { Redirect } from 'react-router';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { setRedirectUrl } from '../actions';
+import ShowLoading from './ShowLoading.js';
+
 
 import Editor from 'draft-js-plugins-editor';
 import {DefaultDraftBlockRenderMap, EditorState, ContentState, RichUtils, Modifier, convertToRaw} from 'draft-js';
@@ -90,7 +92,8 @@ class Publish extends React.Component {
 						fetches: {},
 						logoImg: null,
                         images: [],
-                        id: null
+                        id: null,
+                        loading: false
 					};
 		this.onChangeTitle = (editorStateTitle) => this.setState({editorStateTitle});
 		this.onChangeBody = (editorStateBody) => this.setState({editorStateBody});
@@ -170,18 +173,18 @@ class Publish extends React.Component {
 	}
 	
 	handleSubmit(event) {
-		event.preventDefault();
+        event.preventDefault();
 		var checkboxes = document.querySelectorAll('input[type="checkbox"]');
 		var checkedOne = Array.prototype.slice.call(checkboxes).some(x => x.checked);
 		if (!checkedOne) {
 			alert('Please check at least one category');
-		} else {
+        } else {
+            this.setState({ loading: true });
 			var myForm = document.getElementById('publish');
 			var formData = new FormData(myForm);
 			var articleContent = this.state.editorStateBody.getCurrentContent();
 			
 			var cats = formData.getAll('cat');
-			var title = formData.get('title');
 			var firstBlock = articleContent.getFirstBlock();
 			var nextBlock = articleContent.getBlockAfter(firstBlock.key);
 			
@@ -238,7 +241,7 @@ class Publish extends React.Component {
                             credentials: 'include'
                         })
                         .then((response) => {
-                            this.setState({ finishPublish: true });
+                            this.setState({ finishPublish: true, loading: false });
                         })
                         .catch((error) => {
                             console.log(error);
@@ -280,7 +283,7 @@ class Publish extends React.Component {
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ url: logoImg.original, title: title, id: id, logo: true, article: true }),
+                body: JSON.stringify({ url: logoImg.original, title: title, id: id, logo: true, source: "Article" }),
 				credentials: 'include'
 			})
 				.then((response) => response.json())
@@ -298,7 +301,8 @@ class Publish extends React.Component {
         var junkBlob = new Blob(['sup'], { type: 'text/plain' });
         if (image.file) {
             let localFile = new FormData();
-            localFile.append('file', image.file);
+            localFile.append('file', image.file.image);
+            localFile.append('fileName', junkBlob, image.file.name);
             localFile.append('title', junkBlob, title);
             localFile.append('id', junkBlob, id);
             localFile.append('imgBar', junkBlob);
@@ -323,7 +327,7 @@ class Publish extends React.Component {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ url: image.original, title: title, id: id, imgBar: true, article: true }),
+                    body: JSON.stringify({ url: image.original, title: title, id: id, imgBar: true, source: "Article" }),
                     credentials: 'include'
                 })
                 .then((response) => response.json())
@@ -340,13 +344,17 @@ class Publish extends React.Component {
         let entity = entityObject[key];
         let oldUrl = entity.data.src;
         var junkBlob = new Blob(['sup'], { type: 'text/plain' });
+        console.log(entity.data.file);
         if (entity.data.file) {
             let localFile = new FormData();
-            localFile.append('file', entity.data.file);
+            localFile.append('file', entity.data.file.image);
+            localFile.append('fileName', junkBlob, entity.data.file.name);
             localFile.append('title', junkBlob, title);
             localFile.append('id', junkBlob, id);
             localFile.append('draft', junkBlob);
             localFile.append('article', junkBlob);
+            console.log(localFile);
+            console.log(this);
 
             return fetch(config.url + "/admin/publish/uploadLocalImage",
                 {
@@ -371,7 +379,7 @@ class Publish extends React.Component {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ url: oldUrl, title: title, id: id, draft: true, article: true }),
+                    body: JSON.stringify({ url: oldUrl, title: title, id: id, draft: true, source: "Article" }),
                     credentials: 'include'
                 })
                 .then((response) => response.json())
@@ -613,6 +621,7 @@ class Publish extends React.Component {
 								<input type="submit" value="Submit Article" form="publish" />
 							</div>
 						</div>
+                        <ShowLoading loading={this.state.loading} />
 					</div>
                     )}
             </div>

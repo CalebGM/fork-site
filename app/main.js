@@ -437,7 +437,8 @@ app.post('/admin/publish/uploadImage', function(req, res) {
 app.post('/admin/publish/uploadLocalImage', function(req, res) {
 
 	var files = req.files;
-	console.log(files);
+    console.log(files);
+    console.log('hi        ' + files.file);
 	var file = files.file;
     var title = files.title.name;
     var id = files.id.name;
@@ -447,7 +448,7 @@ app.post('/admin/publish/uploadLocalImage', function(req, res) {
     var article = files.article;
     var post = files.post;
     var announcement = files.announcement;
-    var photoKey, bucket, baseUrl;
+    var photoKey, bucket, baseUrl, fileName;
 
     if (article) {
         bucket = config.s3.articleBucket;
@@ -459,14 +460,14 @@ app.post('/admin/publish/uploadLocalImage', function(req, res) {
         bucket = config.s3.announceBucket;
         baseUrl = config.s3.announceUrl;
     }
-		
-	var fileName = file.name;
 	
 	if (logo) {
 		photoKey = id + '-' + title + '/' + 'logo';
-	} else if (imgBar) {
+    } else if (imgBar) {
+        fileName = files.fileName.name;
         photoKey = id + '-' + title + '/media/' + fileName;
-	} else if(draft) {
+    } else if (draft) {
+        fileName = files.fileName.name;
         photoKey = id + '-' + title + '/artmedia/' + fileName;
     }
     //console.log(photoKey);

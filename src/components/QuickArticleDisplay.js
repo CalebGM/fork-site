@@ -17,7 +17,8 @@ class QuickArticleDisplay extends React.Component {
 	componentDidMount() {
 		var articleInfo = this.props.article;
         var title = articleInfo.Title;
-		var logo = config.baseUrl + title + '/logo';
+        var id = articleInfo.idArticles;
+        var logo = config.articleUrl + id + "-" + title + '/logo';
         var newCat = this.state.categories;
 		for (var key in articleInfo) {
 			if (key !== "idArticles" && key !== "idposts" && key !== "User" && articleInfo[key] === 1) {

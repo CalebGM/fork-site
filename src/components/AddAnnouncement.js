@@ -153,7 +153,6 @@ class AddAnnouncement extends React.Component {
         var formData = new FormData(myForm);
         var articleContent = this.state.editorStateBody.getCurrentContent();
         
-        var title = formData.get('title');
         var firstBlock = articleContent.getFirstBlock();
         var nextBlock = articleContent.getBlockAfter(firstBlock.key);
 
@@ -210,11 +209,6 @@ class AddAnnouncement extends React.Component {
 
     getNextId() {
         const { title } = this.state;
-        var login = this.props.login;
-        var username = this.props.username;
-        var parentId = this.props.parentId;
-        var parentIsStart = this.props.start;
-        var articleTitle = this.state.articleTitle;
 
         return fetch(config.url + "/publish/addSql",
             {
@@ -246,7 +240,8 @@ class AddAnnouncement extends React.Component {
         var junkBlob = new Blob(['sup'], { type: 'text/plain' });
         if (entity.data.file) {
             let localFile = new FormData();
-            localFile.append('file', entity.data.file);
+            localFile.append('file', entity.data.file.image);
+            localFile.append('fileName', junkBlob, entity.data.file.name);
             localFile.append('title', junkBlob, title);
             localFile.append('id', junkBlob, id);
             localFile.append('draft', junkBlob);
@@ -275,7 +270,7 @@ class AddAnnouncement extends React.Component {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ url: oldUrl, title: title, id: id, draft: true, announcement: true }),
+                    body: JSON.stringify({ url: oldUrl, title: title, id: id, draft: true, source: "Announcement" }),
                     credentials: 'include'
                 })
                 .then((response) => response.json())
@@ -318,13 +313,6 @@ class AddAnnouncement extends React.Component {
 
     _focus = () => {
         this.editor.focus();
-    }
-
-
-    modifyImageBar(newImages) {
-        console.log(newImages);
-        this.setState({ images: newImages });
-        console.log(this.state.images);
     }
 
     render() {

@@ -23,14 +23,38 @@
 
 
 .Cropper {
-	background-color: lightgrey;
-	border: solid;
-	position: absolute;
-	z-index: 4;
-	width: 100vw;
-	max-width: 100%;
-	height: auto;
-	left: 0;
+    background-color: black;
+    border: solid;
+    position: fixed;
+    display: flex;
+    z-index: 4;
+    max-height: 100vh;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    align-items: flex-end;
+}
+
+.Cropper img {
+    max-height: 90vh;
+    max-width: 90vw;
+    width: auto;
+    height: auto;
+}
+
+.CropOptions {
+    display: inline-grid;
+    background-color: black;
+    padding: 5px;
+    height: 100%;
+}
+
+.CropOptions > button {
+    background-color: black;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-size: 30px;
 }
 
 
@@ -43,7 +67,7 @@
 	text-align: center;
 	background-color: grey;
 	height: 130px;
-	width: 130px;
+	width: 150.95px;
 	position: relative;
 	margin-bottom: 5px;
 }

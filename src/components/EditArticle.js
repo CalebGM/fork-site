@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Redirect } from 'react-router';
+import ShowLoading from './ShowLoading.js';
 
 import Editor from 'draft-js-plugins-editor';
 import {DefaultDraftBlockRenderMap, EditorState, ContentState, RichUtils, Modifier, convertToRaw} from 'draft-js';
@@ -94,12 +95,13 @@ class EditArticle extends React.Component {
 						author: props.author,
                         id: props.id,
 						category: category,
-						logoImg: { original: config.articleUrl + props.title + '/logo' },
+						logoImg: { original: config.articleUrl + props.id + "-" + props.title + '/logo' },
 						images: props.images,
 						preview: false,
 						finishPublish: false,
 						deleteRedirect: false,
-						fetches: {}
+						fetches: {},
+                        loading: false
 					};
 						
 		this.onChangeBody = (editorStateBody) => this.setState({editorStateBody});
@@ -172,12 +174,13 @@ class EditArticle extends React.Component {
 	}
 	
 	handleSubmit(event) {
-		event.preventDefault();
+        event.preventDefault();
 		var checkboxes = document.querySelectorAll('input[type="checkbox"]');
 		var checkedOne = Array.prototype.slice.call(checkboxes).some(x => x.checked);
 		if (!checkedOne) {
 			alert('Please check at least one category');
-		} else {
+        } else {
+            this.setState({ loading: true });
 			var myForm = document.getElementById('publish');
 			var formData = new FormData(myForm);
 			var articleContent = this.state.editorStateBody.getCurrentContent();
@@ -262,7 +265,7 @@ class EditArticle extends React.Component {
 					credentials: 'include'
 				})
 					.then((response) => {
-						this.setState({ finishPublish: true });
+						this.setState({ finishPublish: true, loading: false });
 					})
 					.catch((error) => {
 						console.log(error);
@@ -321,7 +324,8 @@ class EditArticle extends React.Component {
         var junkBlob = new Blob(['sup'], { type: 'text/plain' });
         if (image.file) {
             let localFile = new FormData();
-            localFile.append('file', image.file);
+            localFile.append('file', image.file.image);
+            localFile.append('fileName', junkBlob, image.file.name);
             localFile.append('title', junkBlob, title);
             localFile.append('id', junkBlob, id);
             localFile.append('imgBar', junkBlob);
@@ -372,9 +376,11 @@ class EditArticle extends React.Component {
         let entity = entityObject[key];
         let oldUrl = entity.data.src;
         var junkBlob = new Blob(['sup'], { type: 'text/plain' });
+        console.log(entity.data.file);
         if (entity.data.file) {
             let localFile = new FormData();
-            localFile.append('file', entity.data.file);
+            localFile.append('file', entity.data.file.image);
+            localFile.append('fileName', junkBlob, entity.data.file.name);
             localFile.append('title', junkBlob, title);
             localFile.append('id', junkBlob, id);
             localFile.append('draft', junkBlob);
@@ -502,7 +508,8 @@ class EditArticle extends React.Component {
 	
 	render() {
 		const { onCancel, onPublish } = this.props;
-		const { finishPublish, title, ogTitle, deleteRedirect } = this.state;
+        const { finishPublish, title, ogTitle, deleteRedirect } = this.state;
+        
 		
 		if (finishPublish && (title !== ogTitle)) {
 			return <Redirect to={`/story/${title}`} />;
@@ -634,6 +641,7 @@ class EditArticle extends React.Component {
 								</div>
 							</div>
 						</div>
+                        <ShowLoading loading={this.state.loading} />
 					</div>
 				)}
 			</div>		
